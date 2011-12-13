@@ -32,18 +32,6 @@ namespace ns3 {
 
 NS_LOG_COMPONENT_DEFINE ("InetTopologyReader");
 
-NS_OBJECT_ENSURE_REGISTERED (InetTopologyReader);
-
-TypeId InetTopologyReader::GetTypeId (void)
-{
-  static TypeId tid = TypeId ("ns3::InetTopologyReader")
-    .SetParent<TopologyReader> ()
-    .SetGroupName ("TopologyReader")
-    .AddConstructor<InetTopologyReader> ()
-  ;
-  return tid;
-}
-
 InetTopologyReader::InetTopologyReader ()
 {
   NS_LOG_FUNCTION (this);

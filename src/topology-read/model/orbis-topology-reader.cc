@@ -32,18 +32,6 @@ namespace ns3 {
 
 NS_LOG_COMPONENT_DEFINE ("OrbisTopologyReader");
 
-NS_OBJECT_ENSURE_REGISTERED (OrbisTopologyReader);
-
-TypeId OrbisTopologyReader::GetTypeId (void)
-{
-  static TypeId tid = TypeId ("ns3::OrbisTopologyReader")
-    .SetParent<TopologyReader> ()
-    .SetGroupName ("TopologyReader")
-    .AddConstructor<OrbisTopologyReader> ()
-  ;
-  return tid;
-}
-
 OrbisTopologyReader::OrbisTopologyReader ()
 {
   NS_LOG_FUNCTION (this);

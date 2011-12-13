@@ -43,12 +43,6 @@ namespace ns3 {
 class RocketfuelTopologyReader : public TopologyReader
 {
 public:
-  /**
-   * \brief Get the type ID.
-   * \return The object TypeId
-   */
-  static TypeId GetTypeId (void);
-
   RocketfuelTopologyReader ();
   virtual ~RocketfuelTopologyReader ();
 

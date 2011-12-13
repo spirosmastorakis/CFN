@@ -28,17 +28,6 @@ namespace ns3 {
 
 NS_LOG_COMPONENT_DEFINE ("TopologyReader");
 
-NS_OBJECT_ENSURE_REGISTERED (TopologyReader);
-
-TypeId TopologyReader::GetTypeId (void)
-{
-  static TypeId tid = TypeId ("ns3::TopologyReader")
-    .SetParent<Object> ()
-    .SetGroupName ("TopologyReader")
-  ;
-  return tid;
-}
-
 TopologyReader::TopologyReader ()
 {
   NS_LOG_FUNCTION (this);
