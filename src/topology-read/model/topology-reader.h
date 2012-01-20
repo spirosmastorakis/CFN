@@ -59,6 +59,8 @@ public:
      */
     typedef std::map<std::string, std::string>::const_iterator ConstAttributesIterator;
 
+    Link (); // default constructor
+    
     /**
      * \brief Constructor.
      * \param [in] fromPtr Ptr to the node the link is originating from.
@@ -138,7 +140,6 @@ public:
     ConstAttributesIterator AttributesEnd (void) const;
 
 private:
-    Link ();
     std::string m_fromName; //!< Name of the node the links originates from.
     Ptr< Node > m_fromPtr;  //!< The node the links originates from.
     std::string m_toName;   //!< Name of the node the links is directed to.
