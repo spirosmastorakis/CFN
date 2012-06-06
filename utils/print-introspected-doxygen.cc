@@ -47,6 +47,8 @@ NS_LOG_COMPONENT_DEFINE ("PrintIntrospectedDoxygen");
 
 namespace
 {
+  std::string g_showGroupOnly;     ///< command-line option to retrospect a selected group
+
   std::string anchor;              ///< hyperlink anchor
   std::string argument;            ///< function argument
   std::string boldStart;           ///< start of bold span
@@ -481,7 +483,8 @@ PrintAllAttributes (std::ostream & os)
     {
       TypeId tid = TypeId::GetRegistered (i);
       if (tid.GetAttributeN () == 0 ||
-	  tid.MustHideFromDocumentation ())
+	  tid.MustHideFromDocumentation () ||
+          (!g_showGroupOnly.empty() && tid.GetGroupName () != g_showGroupOnly))
 	{
 	  continue;
 	}
@@ -605,7 +608,8 @@ PrintAllTraceSources (std::ostream & os)
     {
       TypeId tid = TypeId::GetRegistered (i);
       if (tid.GetTraceSourceN () == 0 ||
-	  tid.MustHideFromDocumentation ())
+	  tid.MustHideFromDocumentation () ||
+          (!g_showGroupOnly.empty() && tid.GetGroupName () != g_showGroupOnly))
 	{
 	  continue;
 	}
@@ -846,6 +850,7 @@ typedef struct {
   const std::string m_type;   //!< The name of the underlying type.
   const bool m_seeBase;       //!< Print a "see also" pointing to the base class.
   const std::string m_header; //!< The header file name.
+  const std::string m_group;  //!< Group name
 } AttributeDescriptor;
 
 
@@ -883,83 +888,91 @@ PrintAttributeImplementations (std::ostream & os)
       // Name             Type             see Base  header-file
       // Users of ATTRIBUTE_HELPER_HEADER
       //
-      { "Address",        "Address",        true,  "address.h"          },
-      { "Box",            "Box",            true,  "box.h"              },
-      { "DataRate",       "DataRate",       true,  "data-rate.h"        },
+      { "Address",        "Address",        true,  "address.h",         "Network" },
+      { "Box",            "Box",            true,  "box.h",             "Mobility" },
+      { "DataRate",       "DataRate",       true,  "data-rate.h",       "Network" },
       { "DsssParameterSet",
                           "DsssParameterSet",
-                                            true,  "dsss-parameter-set.h"},
+                                            true,  "dsss-parameter-set.h", "Wifi" },
       { "EdcaParameterSet",
                           "EdcaParameterSet",
-                                            true,  "edca-parameter-set.h"},
-      { "ErpInformation", "ErpInformation", true,  "erp-information.h"  },
-      { "ExtendedCapabilities", "ExtendedCapabilities", true,  "extended-capabilities.h"  },
-      { "HeCapabilities", "HeCapabilities", true,  "he-capabilities.h"  },
-      { "VhtCapabilities","VhtCapabilities",true,  "vht-capabilities.h" },
-      { "HtCapabilities", "HtCapabilities", true,  "ht-capabilities.h"  },
-      { "IeMeshId",       "IeMeshId",       true,  "ie-dot11s-id.h"     },
-      { "Ipv4Address",    "Ipv4Address",    true,  "ipv4-address.h"     },
-      { "Ipv4Mask",       "Ipv4Mask",       true,  "ipv4-address.h"     },
-      { "Ipv6Address",    "Ipv6Address",    true,  "ipv6-address.h"     },
-      { "Ipv6Prefix",     "Ipv6Prefix",     true,  "ipv6-address.h"     },
-      { "Mac16Address",   "Mac16Address",   true,  "mac16-address.h"    },
-      { "Mac48Address",   "Mac48Address",   true,  "mac48-address.h"    },
-      { "Mac64Address",   "Mac64Address",   true,  "mac64-address.h"    },
-      { "ObjectFactory",  "ObjectFactory",  true,  "object-factory.h"   },
+                                            true,  "edca-parameter-set.h", "Wifi" },
+      { "ErpInformation", "ErpInformation", true,  "erp-information.h", "Wifi" },
+      { "ExtendedCapabilities",
+                          "ExtendedCapabilities",
+                                            true,  "extended-capabilities.h", "Wifi"  },
+      { "HeCapabilities", "HeCapabilities", true,  "he-capabilities.h", "Wifi"  },
+      { "VhtCapabilities","VhtCapabilities",true,  "vht-capabilities.h", "Wifi" },
+
+      { "HtCapabilities", "HtCapabilities", true,  "ht-capabilities.h", "Wifi" },
+      { "IeMeshId",       "IeMeshId",       true,  "ie-dot11s-id.h",    "Wifi" },
+      { "Ipv4Address",    "Ipv4Address",    true,  "ipv4-address.h",    "Network" },
+      { "Ipv4Mask",       "Ipv4Mask",       true,  "ipv4-address.h",    "Network" },
+      { "Ipv6Address",    "Ipv6Address",    true,  "ipv6-address.h",    "Network" },
+      { "Ipv6Prefix",     "Ipv6Prefix",     true,  "ipv6-address.h",    "Network" },
+      { "Mac16Address",   "Mac16Address",   true,  "mac16-address.h",   "Network" },
+      { "Mac48Address",   "Mac48Address",   true,  "mac48-address.h",   "Network" },
+      { "Mac64Address",   "Mac64Address",   true,  "mac64-address.h",   "Network" },
+      { "ObjectFactory",  "ObjectFactory",  true,  "object-factory.h",  "Core" },
       { "OrganizationIdentifier",
                           "OrganizationIdentifier",
-                                            true,  "vendor-specific-action.h" },
-      { "Rectangle",      "Rectangle",      true,  "rectangle.h"        },
-      { "Ssid",           "Ssid",           true,  "ssid.h"             },
-      { "TypeId",         "TypeId",         true,  "type-id.h"          },
-      { "UanModesList",   "UanModesList",   true,  "uan-tx-mode.h"      },
-      // { "ValueClassTest", "ValueClassTest", false, "" /* outside ns3 */ },
-      { "Vector2D",       "Vector2D",       true,  "vector.h"           },
-      { "Vector3D",       "Vector3D",       true,  "vector.h"           },
-      { "HeOperation",    "HeOperation",    true,  "he-operation.h"    },
-      { "VhtOperation",   "VhtOperation",   true,  "vht-operation.h"    },
-      { "HtOperation",    "HtOperation",    true,  "ht-operation.h"  },
-      { "Waypoint",       "Waypoint",       true,  "waypoint.h"         },
-      { "WifiMode",       "WifiMode",       true,  "wifi-mode.h"        },
-      
+                                            true,  "vendor-specific-action.h", "Wave" },
+      { "Rectangle",      "Rectangle",      true,  "rectangle.h",        "Mobility" },
+      { "Ssid",           "Ssid",           true,  "ssid.h",             "Wifi" },
+      { "TypeId",         "TypeId",         true,  "type-id.h",          "Core" },
+      { "UanModesList",   "UanModesList",   true,  "uan-tx-mode.h",      "Uan" },
+      { "ValueClassTest", "ValueClassTest", false, "" /* outside ns3 */, "Core" },
+      { "Vector2D",       "Vector2D",       true,  "vector.h",           "Core" },
+      { "Vector3D",       "Vector3D",       true,  "vector.h",           "Core" },
+      { "HeOperation",    "HeOperation",    true,  "he-operation.h",     "Mobility" },
+      { "VhtOperation",   "VhtOperation",   true,  "vht-operation.h",    "Mobility" },
+      { "HtOperation",    "HtOperation",    true,  "ht-operation.h",     "Mobility" },
+      { "Waypoint",       "Waypoint",       true,  "waypoint.h",         "Mobility" },
+      { "WifiMode",       "WifiMode",       true,  "wifi-mode.h",        "Wifi" },
+
       // All three (Value, Access and Checkers) defined, but custom
-      { "Boolean",        "Boolean",        false, "boolean.h"          },
-      { "Callback",       "Callback",       true,  "callback.h"         },
-      { "Double",         "double",         false, "double.h"           },
-      { "Enum",           "int",            false, "enum.h"             },
-      { "Integer",        "int64_t",        false, "integer.h"          },
-      { "Pointer",        "Pointer",        false, "pointer.h"          },
-      { "RandomVariable", "RandomVariable", true,  "random-variable-stream.h"  },
-      { "String",         "std::string",    false, "string.h"           },
-      { "Time",           "Time",           true,  "nstime.h"           },
-      { "Uinteger",       "uint64_t",       false, "uinteger.h"         },
-      { "",               "",               false, "last placeholder"   }
+      { "Boolean",        "Boolean",        false, "boolean.h",         "Core" },
+      { "Callback",       "Callback",       true,  "callback.h",        "Core" },
+      { "Double",         "double",         false, "double.h",          "Core" },
+      { "Enum",           "int",            false, "enum.h",            "Core" },
+      { "Integer",        "int64_t",        false, "integer.h",         "Core" },
+      { "Pointer",        "Pointer",        false, "pointer.h",         "Core" },
+      { "RandomVariable", "RandomVariable", true,  "random-variable.h", "Core" },
+      { "String",         "std::string",    false, "string.h",          "Core" },
+      { "Time",           "Time",           true,  "nstime.h",          "Core" },
+      { "Uinteger",       "uint64_t",       false, "uinteger.h",        "Core" },
+      { "",               "",               false, "last placeholder",  "" }
     };
 
-  int i = 0;
-  while (attributes[i].m_name != "")
+  for (size_t i = 0; attributes[i].m_name != ""; ++i)
     {
+      if (!g_showGroupOnly.empty() && attributes[i].m_name != g_showGroupOnly)
+        {
+          continue;
+        }
       PrintAttributeHelper (os, attributes[i]);
-      ++i;
     }
 
   // Special cases
-  PrintAttributeValueSection  (os, "EmptyAttribute", false);
-  PrintAttributeValueWithName (os, "EmptyAttribute", "EmptyAttribute",
-                                   "attribute.h");
+  if (!g_showGroupOnly.empty() && g_showGroupOnly == "Core")
+    {
+      PrintAttributeValueSection  (os, "EmptyAttribute", false);
+      PrintAttributeValueWithName (os, "EmptyAttribute", "EmptyAttribute",
+                                       "attribute.h");
 
-  PrintAttributeValueSection  (os, "ObjectPtrContainer", false);
-  PrintAttributeValueWithName (os, "ObjectPtrContainer", "ObjectPtrContainer", "object-ptr-container.h");
-  PrintMakeChecker            (os, "ObjectPtrContainer",  "object-ptr-container.h");
+      PrintAttributeValueSection  (os, "ObjectPtrContainer", false);
+      PrintAttributeValueWithName (os, "ObjectPtrContainer", "ObjectPtrContainer", "object-ptr-container.h");
+      PrintMakeChecker            (os, "ObjectPtrContainer",  "object-ptr-container.h");
 
-  PrintAttributeValueSection  (os, "ObjectVector", false);
-  PrintMakeAccessors          (os, "ObjectVector");
-  PrintMakeChecker            (os, "ObjectVector", "object-vector.h");
+      PrintAttributeValueSection  (os, "ObjectVector", false);
+      PrintMakeAccessors          (os, "ObjectVector");
+      PrintMakeChecker            (os, "ObjectVector", "object-vector.h");
 
-  PrintAttributeValueSection  (os, "ObjectMap", false);
-  PrintMakeAccessors          (os, "ObjectMap");
-  PrintMakeChecker            (os, "ObjectMap", "object-map.h");
-  
+      PrintAttributeValueSection  (os, "ObjectMap", false);
+      PrintMakeAccessors          (os, "ObjectMap");
+      PrintMakeChecker            (os, "ObjectMap", "object-map.h");
+    }
+
 }  // PrintAttributeImplementations ()
 
 
@@ -1343,10 +1356,11 @@ GetNameMap (const StaticInformation & info)
   for (uint32_t i = 0; i < TypeId::GetRegisteredN (); i++)
     {
       TypeId tid = TypeId::GetRegistered (i);
-      if (tid.MustHideFromDocumentation ())
-	{
-	  continue;
-	}
+      if (tid.MustHideFromDocumentation () ||
+          (!g_showGroupOnly.empty() && tid.GetGroupName () != g_showGroupOnly))
+        {
+          continue;
+        }
       
       // Capitalize all of letters in the name so that it sorts
       // correctly in the map.
@@ -1432,6 +1446,7 @@ int main (int argc, char *argv[])
   cmd.Usage ("Generate documentation for all ns-3 registered types, "
 	     "trace sources, attributes and global variables.");
   cmd.AddValue ("output-text", "format output as plain text", outputText);
+  cmd.AddValue ("group", "print information only for the specified group", g_showGroupOnly);
   cmd.Parse (argc, argv);
     
   SetMarkup (outputText);
@@ -1482,7 +1497,8 @@ int main (int argc, char *argv[])
       if (i >= 0)
         {
           tid = TypeId::GetRegistered (i);
-          if (tid.MustHideFromDocumentation ())
+          if (tid.MustHideFromDocumentation () ||
+              (!g_showGroupOnly.empty() && tid.GetGroupName () != g_showGroupOnly))
             {
               continue;
             }
