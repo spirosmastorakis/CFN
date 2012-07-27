@@ -3013,6 +3013,11 @@ def register_Ns3Object_methods(root_module, cls):
                    'ns3::TypeId', 
                    [], 
                    is_const=True, is_virtual=True)
+    ## object.h (module 'core'): ns3::Ptr<ns3::MobilityModel> ns3::Object::GetObject() const [member function]
+    cls.add_method('GetObject', 
+                   'ns3::Ptr< ns3::MobilityModel >', 
+                   [], 
+                   is_const=True, template_parameters=['ns3::MobilityModel'])
     ## object.h (module 'core'): static ns3::TypeId ns3::Object::GetTypeId() [member function]
     cls.add_method('GetTypeId', 
                    'ns3::TypeId', 
@@ -4734,6 +4739,11 @@ def register_Ns3MobilityModel_methods(root_module, cls):
                    'double', 
                    [param('ns3::Ptr< ns3::MobilityModel const >', 'position')], 
                    is_const=True)
+    ## mobility-model.h (module 'mobility'): static ns3::Ptr<ns3::MobilityModel> ns3::MobilityModel::GetMobilityModel(ns3::Ptr<ns3::Object> node) [member function]
+    cls.add_method('GetMobilityModel', 
+                   'ns3::Ptr< ns3::MobilityModel >', 
+                   [param('ns3::Ptr< ns3::Object >', 'node')], 
+                   is_static=True)
     ## mobility-model.h (module 'mobility'): ns3::Vector ns3::MobilityModel::GetPosition() const [member function]
     cls.add_method('GetPosition', 
                    'ns3::Vector', 

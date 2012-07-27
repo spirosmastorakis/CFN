@@ -79,6 +79,9 @@ public:
    */
   int64_t AssignStreams (int64_t stream);
 
+  static inline Ptr<MobilityModel>
+  GetMobilityModel (Ptr<Object> node);
+
   /**
    *  TracedCallback signature.
    *
@@ -130,6 +133,13 @@ private:
   ns3::TracedCallback<Ptr<const MobilityModel> > m_courseChangeTrace;
 
 };
+
+Ptr<MobilityModel>
+MobilityModel::GetMobilityModel (Ptr<Object> node)
+{
+  return node->GetObject<MobilityModel> ();
+}
+
 
 } // namespace ns3
 
