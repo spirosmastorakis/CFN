@@ -1139,6 +1139,7 @@ class Visualizer(GObject.GObject):
                         if mobility is None:
                             channel_name = "Channel %s" % id(channel)
                             graph.add_edge(node_name, channel_name)
+
                         self.get_channel(channel)
                         self.create_link(self.get_node(nodeI), self.get_channel(channel))
                     else:
@@ -1157,10 +1158,15 @@ class Visualizer(GObject.GObject):
                         otherDev = channel.GetDevice(otherDevI)
                         otherNode = otherDev.GetNode()
                         otherNodeView = self.get_node(otherNode.GetId())
+
                         if otherNode is not node:
-                            if mobility is None and not otherNodeView.has_mobility:
+                            if os.environ.get ('NS_VIS_ASSIGN') is not None:
                                 other_node_name = "Node %i" % otherNode.GetId()
                                 graph.add_edge(node_name, other_node_name)
+                            else:
+                                if mobility is None and not otherNodeView.has_mobility:
+                                    other_node_name = "Node %i" % otherNode.GetId()
+                                    graph.add_edge(node_name, other_node_name)
                             self.create_link(self.get_node(nodeI), otherNodeView)
 
         print("scanning topology: calling graphviz layout")
@@ -1171,8 +1177,19 @@ class Visualizer(GObject.GObject):
             pos_x, pos_y = [float(s) for s in node.attr['pos'].split(',')]
             if node_type == 'Node':
                 obj = self.nodes[int(node_id)]
+
+                # If node reordering is requested
+                if os.environ.get ('NS_VIS_ASSIGN') is not None:
+                    node = ns.network.NodeList.GetNode(int(node_id))
+                    mobility = ns.mobility.MobilityModel.GetMobilityModel (node)
+                    if mobility is not None:
+                        pos = ns.core.Vector (pos_x, pos_y, 0)
+                        mobility.SetPosition (pos)
+
+
             elif node_type == 'Channel':
                 obj = self.channels[int(node_id)]
+
             obj.set_position(pos_x, pos_y)
 
         print("scanning topology: all done.")
