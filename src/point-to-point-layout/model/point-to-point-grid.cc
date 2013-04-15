@@ -219,7 +219,7 @@ PointToPointGridHelper::BoundingBox (double ulx, double uly,
               loc = CreateObject<ConstantPositionMobilityModel> ();
               node->AggregateObject (loc);
             }
-          Vector locVec (xLoc, yLoc, 0);
+          Vector locVec (ulx + xLoc, uly + yLoc, 0);
           loc->SetPosition (locVec);
 
           xLoc += xAdder;
