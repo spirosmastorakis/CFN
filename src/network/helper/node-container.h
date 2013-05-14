@@ -40,6 +40,8 @@ class NodeContainer
 public:
   /// Node container iterator
   typedef std::vector<Ptr<Node> >::const_iterator Iterator;
+  typedef std::vector<Ptr<Node> >::iterator iterator;
+  typedef std::vector<Ptr<Node> >::const_iterator const_iterator;
 
   /**
    * Create an empty NodeContainer.
@@ -55,9 +57,9 @@ public:
   NodeContainer (Ptr<Node> node);
 
   /**
-   * Create a NodeContainer with exactly one node which has been previously 
-   * instantiated and assigned a name using the Object Name Service.  This 
-   * Node is then specified by its assigned name. 
+   * Create a NodeContainer with exactly one node which has been previously
+   * instantiated and assigned a name using the Object Name Service.  This
+   * Node is then specified by its assigned name.
    *
    * \param nodeName The name of the Node Object to add to the container.
    */
@@ -71,11 +73,11 @@ public:
    * \param b The second NodeContainer
    *
    * \note A frequently seen idiom that uses these constructors involves the
-   * implicit conversion by constructor of Ptr<Node>.  When used, two 
+   * implicit conversion by constructor of Ptr<Node>.  When used, two
    * Ptr<Node> will be passed to this constructor instead of NodeContainer&.
-   * C++ will notice the implicit conversion path that goes through the 
+   * C++ will notice the implicit conversion path that goes through the
    * NodeContainer (Ptr<Node> node) constructor above.  Using this conversion
-   * one may provide optionally provide arguments of Ptr<Node> to these 
+   * one may provide optionally provide arguments of Ptr<Node> to these
    * constructors.
    */
   NodeContainer (const NodeContainer &a, const NodeContainer &b);
@@ -89,11 +91,11 @@ public:
    * \param c The third NodeContainer
    *
    * \note A frequently seen idiom that uses these constructors involves the
-   * implicit conversion by constructor of Ptr<Node>.  When used, two 
+   * implicit conversion by constructor of Ptr<Node>.  When used, two
    * Ptr<Node> will be passed to this constructor instead of NodeContainer&.
-   * C++ will notice the implicit conversion path that goes through the 
+   * C++ will notice the implicit conversion path that goes through the
    * NodeContainer (Ptr<Node> node) constructor above.  Using this conversion
-   * one may provide optionally provide arguments of Ptr<Node> to these 
+   * one may provide optionally provide arguments of Ptr<Node> to these
    * constructors.
    */
   NodeContainer (const NodeContainer &a, const NodeContainer &b, const NodeContainer &c);
@@ -108,11 +110,11 @@ public:
    * \param d The fourth NodeContainer
    *
    * \note A frequently seen idiom that uses these constructors involves the
-   * implicit conversion by constructor of Ptr<Node>.  When used, two 
+   * implicit conversion by constructor of Ptr<Node>.  When used, two
    * Ptr<Node> will be passed to this constructor instead of NodeContainer&.
-   * C++ will notice the implicit conversion path that goes through the 
+   * C++ will notice the implicit conversion path that goes through the
    * NodeContainer (Ptr<Node> node) constructor above.  Using this conversion
-   * one may provide optionally provide arguments of Ptr<Node> to these 
+   * one may provide optionally provide arguments of Ptr<Node> to these
    * constructors.
    */
   NodeContainer (const NodeContainer &a, const NodeContainer &b, const NodeContainer &c, const NodeContainer &d);
@@ -128,23 +130,23 @@ public:
    * \param e The fifth NodeContainer
    *
    * \note A frequently seen idiom that uses these constructors involves the
-   * implicit conversion by constructor of Ptr<Node>.  When used, two 
+   * implicit conversion by constructor of Ptr<Node>.  When used, two
    * Ptr<Node> will be passed to this constructor instead of NodeContainer&.
-   * C++ will notice the implicit conversion path that goes through the 
+   * C++ will notice the implicit conversion path that goes through the
    * NodeContainer (Ptr<Node> node) constructor above.  Using this conversion
-   * one may provide optionally provide arguments of Ptr<Node> to these 
+   * one may provide optionally provide arguments of Ptr<Node> to these
    * constructors.
    */
   NodeContainer (const NodeContainer &a, const NodeContainer &b, const NodeContainer &c, const NodeContainer &d,
                  const NodeContainer &e);
 
   /**
-   * \brief Get an iterator which refers to the first Node in the 
+   * \brief Get an iterator which refers to the first Node in the
    * container.
    *
    * Nodes can be retrieved from the container in two ways.  First,
    * directly by an index into the container, and second, using an iterator.
-   * This method is used in the iterator method and is typically used in a 
+   * This method is used in the iterator method and is typically used in a
    * for-loop to run through the Nodes
    *
    * \code
@@ -159,13 +161,16 @@ public:
    */
   Iterator Begin (void) const;
 
+  const_iterator begin () const; /// @brief STL-like method, @see Begin
+  iterator begin (); /// @brief STL-like method, @see Begin
+
   /**
-   * \brief Get an iterator which indicates past-the-last Node in the 
+   * \brief Get an iterator which indicates past-the-last Node in the
    * container.
    *
    * Nodes can be retrieved from the container in two ways.  First,
    * directly by an index into the container, and second, using an iterator.
-   * This method is used in the iterator method and is typically used in a 
+   * This method is used in the iterator method and is typically used in a
    * for-loop to run through the Nodes
    *
    * \code
@@ -179,6 +184,9 @@ public:
    * \returns an iterator which indicates an ending condition for a loop.
    */
   Iterator End (void) const;
+
+  const_iterator end () const; /// @brief STL-like method, @see End
+  iterator end (); /// @brief STL-like method, @see End
 
   /**
    * \brief Get the number of Ptr<Node> stored in this container.
@@ -202,6 +210,8 @@ public:
    */
   uint32_t GetN (void) const;
 
+  uint32_t size () const; /// @brief STL-like method, @see GetN
+
   /**
    * \brief Get the Ptr<Node> stored in this container at a given
    * index.
@@ -223,10 +233,14 @@ public:
    * \param i the index of the requested node pointer.
    * \returns the requested node pointer.
    */
-  Ptr<Node> Get (uint32_t i) const;
+  Ptr<Node>
+  Get (uint32_t i) const;
+
+  Ptr<Node> &
+  operator [] (uint32_t i); /// @brief STL-like method, @see Get
 
   /**
-   * \brief Create n nodes and append pointers to them to the end of this 
+   * \brief Create n nodes and append pointers to them to the end of this
    * NodeContainer.
    *
    * Nodes are at the heart of any ns-3 simulation.  One of the first tasks that
@@ -238,12 +252,12 @@ public:
   void Create (uint32_t n);
 
   /**
-   * \brief Create n nodes with specified systemId for distributed simulations 
+   * \brief Create n nodes with specified systemId for distributed simulations
    * and append pointers to them to the end of this NodeContainer.
    *
    * Nodes are at the heart of any ns-3 simulation.  One of the first tasks that
    * any simulation needs to do is to create a number of nodes.  This method
-   * automates that task, and adds the ability to specify systemId for 
+   * automates that task, and adds the ability to specify systemId for
    * distributed simulations.
    *
    * \param n The number of Nodes to create
@@ -276,12 +290,12 @@ public:
 
   /**
    * \brief Create a NodeContainer that contains a list of _all_ nodes
-   * created through NodeContainer::Create() and stored in the 
+   * created through NodeContainer::Create() and stored in the
    * ns3::NodeList.
    *
    * Whenever a Node is created, a Ptr<Node> is added to a global list of all
    * nodes in the system.  It is sometimes useful to be able to get to all
-   * nodes in one place.  This method creates a NodeContainer that is 
+   * nodes in one place.  This method creates a NodeContainer that is
    * initialized to contain all of the simulation nodes,
    *
    * \returns a NoceContainer which contains a list of all Nodes.
