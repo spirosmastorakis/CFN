@@ -27,6 +27,12 @@
 #include <stdlib.h>
 #include <errno.h>
 
+// linux man page specifies <string.h> for strerror
+#include <string.h>
+
+// OSX man page asks for <stdio.h> for strerror
+#include <stdio.h>
+
 #include <sys/socket.h>
 
 namespace ns3 {
