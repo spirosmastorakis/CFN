@@ -76,6 +76,18 @@ public:
                  std::string n4 = "", const AttributeValue &v4 = EmptyAttributeValue ());
 
   /**
+   * Set an attribute value to be propagated to each Queue created by the
+   * helper.
+   *
+   * \param name the name of the attribute to set
+   * \param value the value of the attribute to set
+   *
+   * Set these attributes on each ns3::Queue created by PointToPointHelper::Install
+   */
+  void
+  SetQueueAttribute (std::string name, const AttributeValue &value);
+
+  /**
    * Set an attribute value to be propagated to each NetDevice created by the
    * helper.
    *
