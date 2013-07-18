@@ -287,6 +287,19 @@ public:
   /**
    * \brief Create a new packet which contains a fragment of the original
    * packet.
+   * Create a packet with payload filled with the content
+   * of this buffer. The input data is copied: the input
+   * buffer is untouched.
+   *
+   * \param buffer the data to store in the packet.
+   *
+   * This is an alternative method to construct packet from the real
+   * data, which is supported by python bindings
+   */
+  Packet (const std::string &buffer);
+  /**
+   * Create a new packet which contains a fragment of the original
+   * packet. The returned packet shares the same uid as this packet.
    *
    * The returned packet shares the same uid as this packet.
    *

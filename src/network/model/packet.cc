@@ -213,6 +213,26 @@ Packet::Packet (uint8_t const*buffer, uint32_t size)
   i.Write (buffer, size);
 }
 
+Packet::Packet (const std::string &buffer)
+  : m_buffer (),
+    m_byteTagList (),
+    m_packetTagList (),
+    /* The upper 32 bits of the packet id in 
+     * metadata is for the system id. For non-
+     * distributed simulations, this is simply 
+     * zero.  The lower 32 bits are for the 
+     * global UID
+     */
+    m_metadata (static_cast<uint64_t> (Simulator::GetSystemId ()) << 32 | m_globalUid, buffer.size ()),
+    m_nixVector (0)
+{
+  NS_LOG_FUNCTION (this << &buffer);
+  m_globalUid++;
+  m_buffer.AddAtStart (buffer.size ());
+  Buffer::Iterator i = m_buffer.Begin ();
+  i.Write (reinterpret_cast<const uint8_t*> (&buffer[0]), buffer.size ());
+}
+
 Packet::Packet (const Buffer &buffer,  const ByteTagList &byteTagList, 
                 const PacketTagList &packetTagList, const PacketMetadata &metadata)
   : m_buffer (buffer),
