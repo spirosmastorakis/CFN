@@ -51,6 +51,9 @@ cancel(EventId eventId)
   eventId.cancel();
 }
 
+void
+resetGlobalScheduler();
+
 } // namespace scheduler
 } // namespace nfd
 

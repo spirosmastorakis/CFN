@@ -36,8 +36,9 @@ static boost::thread_specific_ptr<Scheduler> g_scheduler;
 Scheduler&
 getGlobalScheduler()
 {
+  static ndn::DummyIoService io;
   if (g_scheduler.get() == nullptr) {
-    g_scheduler.reset(new Scheduler(getGlobalIoService()));
+    g_scheduler.reset(new Scheduler(io));
   }
 
   return *g_scheduler;

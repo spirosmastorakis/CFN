@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2018,  Regents of the University of California,
+ * Copyright (c) 2014-2019,  Regents of the University of California,
  *                           Arizona Board of Regents,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University,
@@ -24,60 +24,45 @@
  */
 
 #include "global-io.hpp"
-#include <boost/thread/tss.hpp>
+#include "scheduler.hpp"
 
 namespace nfd {
 
-namespace scheduler {
-// defined in scheduler.cpp
+namespace detail {
+
 void
-resetGlobalScheduler();
-} // namespace scheduler
+SimulatorIo::post(const std::function<void()>& callback)
+{
+  scheduler::schedule(time::seconds(0), callback);
+}
 
-static boost::thread_specific_ptr<boost::asio::io_service> g_ioService;
-static boost::asio::io_service* g_mainIoService = nullptr;
-static boost::asio::io_service* g_ribIoService = nullptr;
+void
+SimulatorIo::dispatch(const std::function<void()>& callback)
+{
+  scheduler::schedule(time::seconds(0), callback);
+}
 
-boost::asio::io_service&
+} // namespace detail
+
+detail::SimulatorIo&
 getGlobalIoService()
 {
-  if (g_ioService.get() == nullptr) {
-    g_ioService.reset(new boost::asio::io_service());
-  }
-  return *g_ioService;
+  static detail::SimulatorIo io;
+  return io;
 }
 
-void
-resetGlobalIoService()
-{
-  scheduler::resetGlobalScheduler();
-  g_ioService.reset();
-}
-
-void
-setMainIoService(boost::asio::io_service* mainIo)
-{
-  g_mainIoService = mainIo;
-}
-
-void
-setRibIoService(boost::asio::io_service* ribIo)
-{
-  g_ribIoService = ribIo;
-}
-
-boost::asio::io_service&
+detail::SimulatorIo&
 getMainIoService()
 {
-  BOOST_ASSERT(g_mainIoService != nullptr);
-  return *g_mainIoService;
+  static detail::SimulatorIo io;
+  return io;
 }
 
-boost::asio::io_service&
+detail::SimulatorIo&
 getRibIoService()
 {
-  BOOST_ASSERT(g_ribIoService != nullptr);
-  return *g_ribIoService;
+  static detail::SimulatorIo io;
+  return io;
 }
 
 void

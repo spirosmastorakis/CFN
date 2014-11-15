@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2014-2018  Regents of the University of California,
+ * Copyright (c) 2014-2019  Regents of the University of California,
  *                          Arizona Board of Regents,
  *                          Colorado State University,
  *                          University Pierre & Marie Curie, Sorbonne University,
@@ -29,16 +29,27 @@
 
 namespace nfd {
 
-/** \return the global io_service instance
+namespace detail {
+
+/**
+ * @brief Simulator-based IO that implements a few interfaces from boost::asio::io_service
  */
-boost::asio::io_service&
+class SimulatorIo
+{
+public:
+  void
+  post(const std::function<void()>& callback);
+
+  void
+  dispatch(const std::function<void()>& callback);
+};
+
+} // namespace detail
+
+/** \return Simulator-based IO object
+ */
+detail::SimulatorIo&
 getGlobalIoService();
-
-void
-setMainIoService(boost::asio::io_service* mainIo);
-
-void
-setRibIoService(boost::asio::io_service* ribIo);
 
 /** \brief run a function on the main io_service instance
  */
@@ -50,20 +61,11 @@ runOnMainIoService(const std::function<void()>& f);
 void
 runOnRibIoService(const std::function<void()>& f);
 
-boost::asio::io_service&
+detail::SimulatorIo&
 getMainIoService();
 
-boost::asio::io_service&
+detail::SimulatorIo&
 getRibIoService();
-
-#ifdef WITH_TESTS
-/** \brief delete the global io_service instance
- *
- *  It will be recreated at the next invocation of getGlobalIoService.
- */
-void
-resetGlobalIoService();
-#endif
 
 } // namespace nfd
 
