@@ -26,64 +26,14 @@
 #include "log-config-section.hpp"
 
 #include <ndn-cxx/util/logger.hpp>
-#include <ndn-cxx/util/logging.hpp>
 
 namespace nfd {
 namespace log {
 
-static ndn::util::LogLevel
-parseLogLevel(const ConfigSection& item, const std::string& key)
-{
-  try {
-    return ndn::util::parseLogLevel(item.get_value<std::string>());
-  }
-  catch (const std::invalid_argument& e) {
-    BOOST_THROW_EXCEPTION(ConfigFile::Error("Invalid setting for log." + key + ": " + e.what()));
-  }
-}
-
 static void
 onConfig(const ConfigSection& section, bool isDryRun, const std::string&)
 {
-  // log
-  // {
-  //   ; default_level specifies the logging level for modules
-  //   ; that are not explicitly named. All debugging levels
-  //   ; listed above the selected value are enabled.
-  //
-  //   default_level INFO
-  //
-  //   ; You may also override the default for specific modules:
-  //
-  //   FibManager DEBUG
-  //   Forwarder WARN
-  // }
-
-  auto defaultLevel = ndn::util::LogLevel::INFO;
-  auto item = section.get_child_optional("default_level");
-  if (item) {
-    defaultLevel = parseLogLevel(*item, "default_level");
-  }
-  if (!isDryRun) {
-    // default_level applies only to NFD loggers
-    ndn::util::Logging::setLevel("nfd.*", defaultLevel);
-  }
-
-  for (const auto& i : section) {
-    if (i.first == "default_level") {
-      // do nothing
-    }
-    else {
-      auto level = parseLogLevel(i.second, i.first);
-      if (!isDryRun) {
-        if (i.first.find('.') == std::string::npos)
-          // backward compat: assume unqualified logger names refer to NFD loggers
-          ndn::util::Logging::setLevel("nfd." + i.first, level);
-        else
-          ndn::util::Logging::setLevel(i.first, level);
-      }
-    }
-  }
+  // controlled only through NS-3 logger configuration
 }
 
 void
