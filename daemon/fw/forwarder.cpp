@@ -131,9 +131,20 @@ Forwarder::onIncomingInterest(Face& inFace, const Interest& interest)
 
   // is pending?
   if (!pitEntry->hasInRecords()) {
-    m_cs.find(interest,
-              bind(&Forwarder::onContentStoreHit, this, std::ref(inFace), pitEntry, _1, _2),
-              bind(&Forwarder::onContentStoreMiss, this, std::ref(inFace), pitEntry, _1));
+    if (m_csFromNdnSim == nullptr) {
+      m_cs.find(interest,
+                bind(&Forwarder::onContentStoreHit, this, std::ref(inFace), pitEntry, _1, _2),
+                bind(&Forwarder::onContentStoreMiss, this, std::ref(inFace), pitEntry, _1));
+    }
+    else {
+      shared_ptr<Data> match = m_csFromNdnSim->Lookup(interest.shared_from_this());
+      if (match != nullptr) {
+        this->onContentStoreHit(inFace, pitEntry, interest, *match);
+      }
+      else {
+        this->onContentStoreMiss(inFace, pitEntry, interest);
+      }
+    }
   }
   else {
     this->onContentStoreMiss(inFace, pitEntry, interest);
@@ -286,7 +297,10 @@ Forwarder::onIncomingData(Face& inFace, const Data& data)
   }
 
   // CS insert
-  m_cs.insert(data);
+  if (m_csFromNdnSim == nullptr)
+    m_cs.insert(data);
+  else
+    m_csFromNdnSim->Add(data.shared_from_this());
 
   // when only one PIT entry is matched, trigger strategy: after receive Data
   if (pitMatches.size() == 1) {
@@ -365,7 +379,10 @@ Forwarder::onDataUnsolicited(Face& inFace, const Data& data)
   fw::UnsolicitedDataDecision decision = m_unsolicitedDataPolicy->decide(inFace, data);
   if (decision == fw::UnsolicitedDataDecision::CACHE) {
     // CS insert
-    m_cs.insert(data, true);
+    if (m_csFromNdnSim == nullptr)
+      m_cs.insert(data, true);
+    else
+      m_csFromNdnSim->Add(data.shared_from_this());
   }
 
   NFD_LOG_DEBUG("onDataUnsolicited face=" << inFace.getId() <<
