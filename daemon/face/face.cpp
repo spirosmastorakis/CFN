@@ -38,6 +38,7 @@ Face::Face(unique_ptr<LinkService> service, unique_ptr<Transport> transport)
   , m_service(std::move(service))
   , m_transport(std::move(transport))
   , m_counters(m_service->getCounters(), m_transport->getCounters())
+  , m_metric(0)
 {
   m_service->setFaceAndTransport(*this, *m_transport);
   m_transport->setFaceAndLinkService(*this, *m_service);

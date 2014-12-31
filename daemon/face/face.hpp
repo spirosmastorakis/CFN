@@ -123,6 +123,12 @@ public: // static properties
   void
   setId(FaceId id);
 
+  void
+  setMetric(uint64_t metric);
+
+  uint64_t
+  getMetric() const;
+
   /** \return a FaceUri representing local endpoint
    */
   FaceUri
@@ -190,6 +196,7 @@ private:
   unique_ptr<LinkService> m_service;
   unique_ptr<Transport> m_transport;
   FaceCounters m_counters;
+  uint64_t m_metric;
 };
 
 inline LinkService*
@@ -232,6 +239,18 @@ inline void
 Face::setId(FaceId id)
 {
   m_id = id;
+}
+
+inline void
+Face::setMetric(uint64_t metric)
+{
+  m_metric = metric;
+}
+
+inline uint64_t
+Face::getMetric() const
+{
+  return m_metric;
 }
 
 inline FaceUri
