@@ -3,7 +3,7 @@ import gtk
 import ns.core
 import ns.network
 import ns.internet
-import ns.ndnSIM
+from ns.ndnSIM import ndn
 
 from visualizer.base import InformationWindow
 
@@ -61,20 +61,18 @@ class ShowNdnFib(InformationWindow):
         self.visualizer.remove_information_window(self)
     
     def update(self):
-        ndnFib = ns.ndnSIM.ndn.Fib.GetFib (self.node)
-        
+        ndnFib = ndn.L3Protocol.getL3Protocol(self.node).getForwarder().getFib()
+
         if ndnFib is None:
             return
 
         self.table_model.clear()
-        
-        item = ndnFib.Begin ()
-        while (item != ndnFib.End ()):
+
+        for item in ndnFib:
             tree_iter = self.table_model.append()
             self.table_model.set(tree_iter,
-                                 self.COLUMN_PREFIX, str(item.GetPrefix()),
-                                 self.COLUMN_FACE, str(item))
-            item = ndnFib.Next (item)
+                                 self.COLUMN_PREFIX, str(item.getPrefix()),
+                                 self.COLUMN_FACE, ", ".join(["%s%d (%d)" % (str(nh.getFace()), nh.getFace().getId(), nh.getCost()) for nh in item.getNextHops()]))
 
 def populate_node_menu(viz, node, menu):
     menu_item = gtk.MenuItem("Show NDN FIB")

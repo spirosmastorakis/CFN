@@ -3,7 +3,7 @@ import gtk
 import ns.core
 import ns.network
 import ns.internet
-import ns.ndnSIM
+from ns.ndnSIM import ndn
 
 from visualizer.base import InformationWindow
 
@@ -27,7 +27,7 @@ class ShowNdnPit(InformationWindow):
         if len(node_name) != 0:
             title += " (" + str(node_name) + ")"
 
-        self.win.set_title (title) 
+        self.win.set_title (title)
         self.visualizer = visualizer
         self.node_index = node_index
 
@@ -42,7 +42,7 @@ class ShowNdnPit(InformationWindow):
         sw.add(treeview)
         self.win.vbox.add(sw)
         self.win.set_default_size(600, 300)
-        
+
         # Dest.
         column = gtk.TreeViewColumn('Prefix', gtk.CellRendererText(),
                                     text=self.COLUMN_PREFIX)
@@ -59,22 +59,20 @@ class ShowNdnPit(InformationWindow):
     def _response_cb(self, win, response):
         self.win.destroy()
         self.visualizer.remove_information_window(self)
-    
+
     def update(self):
-        ndnPit = ns.ndnSIM.ndn.Pit.GetPit (self.node)
-        
+        ndnPit = ndn.L3Protocol.getL3Protocol(self.node).getForwarder().getPit()
+
         if ndnPit is None:
             return
 
         self.table_model.clear()
-        
-        item = ndnPit.Begin ()
-        while (item != ndnPit.End ()):
+
+        for item in ndnPit:
             tree_iter = self.table_model.append()
             self.table_model.set(tree_iter,
-                                 self.COLUMN_PREFIX, str(item.GetPrefix()),
-                                 self.COLUMN_FACE, str(item))
-            item = ndnPit.Next (item)
+                                 self.COLUMN_PREFIX, str(item.getName()),
+                                 self.COLUMN_FACE, str(item.getInterest()))
 
 def populate_node_menu(viz, node, menu):
     menu_item = gtk.MenuItem("Show NDN PIT")

@@ -3,7 +3,7 @@ import gtk
 import ns.core
 import ns.network
 import ns.internet
-import ns.ndnSIM
+from ns.ndnSIM import ndn
 
 from visualizer.base import InformationWindow
 
@@ -53,23 +53,17 @@ class ShowNdnCs(InformationWindow):
         self.visualizer.remove_information_window(self)
 
     def update(self):
-        ndnCs = ns.ndnSIM.ndn.ContentStore.GetContentStore (self.node)
+        ndnCs = ndn.L3Protocol.getL3Protocol(self.node).getForwarder().getCs()
 
         if ndnCs is None:
             return
 
         self.table_model.clear()
 
-        values = []
-        item = ndnCs.Begin ()
-        while (item != ndnCs.End ()):
-            values.append (str(item.GetName ()))
-            item = ndnCs.Next (item)
-
-        for value in sorted(values):
+        for item in ndnCs:
             tree_iter = self.table_model.append()
             self.table_model.set(tree_iter,
-                                 self.COLUMN_PREFIX, value)
+                                 self.COLUMN_PREFIX, item.getName())
 
 def populate_node_menu(viz, node, menu):
     menu_item = gtk.MenuItem("Show NDN CS")
