@@ -1,7 +1,11 @@
-from waflib import Logs, Options, Utils
+from waflib import Logs, Options, Utils, Configure
 
 
 class CompilerTraits(object):
+	def get_compiler_flags(self):
+		"""get_compiler_flags() -> list of cflags"""
+		raise NotImplementedError
+
 	def get_warnings_flags(self, level):
 		"""get_warnings_flags(level) -> list of cflags"""
 		raise NotImplementedError
@@ -19,7 +23,11 @@ class GccTraits(CompilerTraits):
 	def __init__(self):
 		super(GccTraits, self).__init__()
 		# cumulative list of warnings per level
-		self.warnings_flags = [['-Wall']]
+		self.warnings_flags = [['-Wall', '-Wno-error=deprecated-declarations',
+                                        '-fstrict-aliasing', '-Wstrict-aliasing']]
+
+	def get_compiler_flags(self):
+		return ['-std=c++0x', '-std=c++11']
 
 	def get_warnings_flags(self, level):
 		warnings = []
@@ -55,7 +63,10 @@ class IccTraits(CompilerTraits):
 		# cumulative list of warnings per level
 		# icc is _very_ verbose with -Wall, -Werror is barely achievable
 		self.warnings_flags = [[], [], ['-Wall']]
-		
+
+	def get_compiler_flags(self):
+		return ['/Qstd=c++11']
+
 	def get_warnings_flags(self, level):
 		warnings = []
 		for l in range(level):
@@ -84,12 +95,14 @@ class IccTraits(CompilerTraits):
 			return (['-ggdb', '-g3'], ['_DEBUG'])
 		
 
-
 class MsvcTraits(CompilerTraits):
 	def __init__(self):
 		super(MsvcTraits, self).__init__()
 		# cumulative list of warnings per level
 		self.warnings_flags = [['/W2'], ['/WX'], ['/Wall']]
+
+	def get_compiler_flags(self):
+		return []
 
 	def get_warnings_flags(self, level):
 		warnings = []
@@ -181,23 +194,41 @@ def configure(conf):
 
 	opt_level, warn_level, dbg_level = profiles[Options.options.build_profile]
 
-	optimizations = compiler.get_optimization_flags(opt_level)
+	compilerFlags = conf.get_supported_cxxflags(compiler.get_compiler_flags(), msg="compiler ")
+	optimizations = conf.get_supported_cxxflags(compiler.get_optimization_flags(opt_level), msg="optimizations ")
 	debug, debug_defs = compiler.get_debug_flags(dbg_level)
-	warnings = compiler.get_warnings_flags(warn_level)
+	debug = conf.get_supported_cxxflags(debug, msg="debug ")
+	warnings = conf.get_supported_cxxflags(compiler.get_warnings_flags(warn_level), msg="warnings ")
 
 	if Options.options.disable_werror:
 		try:
 			warnings.remove ('-Werror')
 		except ValueError:
 			pass
-	
+
 	if cc and not conf.env['CCFLAGS']:
 		conf.env.append_value('CCFLAGS', optimizations)
 		conf.env.append_value('CCFLAGS', debug)
 		conf.env.append_value('CCFLAGS', warnings)
 		conf.env.append_value('CCDEFINES', debug_defs)
 	if cxx and not conf.env['CXXFLAGS']:
+		conf.env.append_value('CXXFLAGS', compilerFlags)
 		conf.env.append_value('CXXFLAGS', optimizations)
 		conf.env.append_value('CXXFLAGS', debug)
 		conf.env.append_value('CXXFLAGS', warnings)
 		conf.env.append_value('CXXDEFINES', debug_defs)
+
+@Configure.conf
+def get_supported_cxxflags(self, cxxflags, msg=""):
+	"""
+	Check which cxxflags are supported by the compiler
+	"""
+	self.start_msg('Checking supported %sCXXFLAGS' % msg)
+
+	supportedFlags = []
+	for flag in cxxflags:
+		if self.check_cxx(cxxflags=['-Werror', flag], mandatory=False):
+			supportedFlags += [flag]
+
+	self.end_msg(' '.join(supportedFlags))
+	return supportedFlags
