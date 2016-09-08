@@ -44,7 +44,7 @@ makeInternalFace(ndn::KeyChain& clientKeyChain)
   auto clientTransport = make_shared<InternalClientTransport>();
   clientTransport->connectToForwarder(forwarderTransport);
 
-  auto clientFace = make_shared<ndn::Face>(clientTransport, getGlobalIoService(), clientKeyChain);
+  auto clientFace = make_shared<ndn::Face>(clientTransport);
 
   return std::make_tuple(face, clientFace);
 }
