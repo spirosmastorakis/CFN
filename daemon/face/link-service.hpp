@@ -146,6 +146,18 @@ public: // upper interface to be used by forwarding
    */
   signal::Signal<LinkService, Interest> onDroppedInterest;
 
+  /** \brief signals on Interest sent
+   */
+  signal::Signal<LinkService, Interest> afterSendInterest;
+
+  /** \brief signals on Data sent
+   */
+  signal::Signal<LinkService, Data> afterSendData;
+
+  /** \brief signals on Nack sent
+   */
+  signal::Signal<LinkService, lp::Nack> afterSendNack;
+
 public: // lower interface to be invoked by Transport
   /** \brief performs LinkService specific operations to receive a lower-layer packet
    */

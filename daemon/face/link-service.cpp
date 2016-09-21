@@ -60,6 +60,8 @@ LinkService::sendInterest(const Interest& interest)
   ++this->nOutInterests;
 
   doSendInterest(interest);
+
+  afterSendInterest(interest);
 }
 
 void
@@ -71,6 +73,8 @@ LinkService::sendData(const Data& data)
   ++this->nOutData;
 
   doSendData(data);
+
+  afterSendData(data);
 }
 
 void
@@ -82,6 +86,8 @@ LinkService::sendNack(const ndn::lp::Nack& nack)
   ++this->nOutNacks;
 
   doSendNack(nack);
+
+  afterSendNack(nack);
 }
 
 void
