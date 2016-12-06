@@ -20,13 +20,7 @@
  */
 
 #include "ndn-cxx/util/logger.hpp"
-#include "ndn-cxx/util/logging.hpp"
-#include "ndn-cxx/util/time.hpp"
-
-#include <cinttypes> // for PRIdLEAST64
-#include <cstdlib>   // for std::abs()
-#include <cstring>   // for std::strspn()
-#include <stdio.h>   // for snprintf()
+#include "ndn-cxx/detail/common.hpp"
 
 namespace ndn {
 namespace util {
@@ -53,7 +47,7 @@ operator<<(std::ostream& os, LogLevel level)
     return os << "ALL";
   }
 
-  BOOST_THROW_EXCEPTION(std::invalid_argument("unknown log level " + to_string(static_cast<int>(level))));
+  BOOST_THROW_EXCEPTION(std::invalid_argument("unknown log level " + std::to_string(static_cast<int>(level))));
 }
 
 LogLevel
@@ -79,73 +73,5 @@ parseLogLevel(const std::string& s)
   BOOST_THROW_EXCEPTION(std::invalid_argument("unrecognized log level '" + s + "'"));
 }
 
-/**
- * \brief checks if incoming logger name meets criteria
- * \param name name of logger
- */
-static bool
-isValidLoggerName(const std::string& name)
-{
-  // acceptable characters for Logger name
-  const char* okChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789~#%_<>.-";
-  if (std::strspn(name.c_str(), okChars) != name.size()) {
-    return false;
-  }
-  if (name.empty() || name.front() == '.' || name.back() == '.') {
-    return false;
-  }
-  if (name.find("..") != std::string::npos) {
-    return false;
-  }
-  return true;
-}
-
-Logger::Logger(const char* name)
-  : m_moduleName(name)
-{
-  if (!isValidLoggerName(m_moduleName)) {
-    BOOST_THROW_EXCEPTION(std::invalid_argument("Logger name '" + m_moduleName + "' is invalid"));
-  }
-  this->setLevel(LogLevel::NONE);
-  Logging::get().addLoggerImpl(*this);
-}
-
-void
-Logger::registerModuleName(const char* name)
-{
-  std::string moduleName(name);
-  if (!isValidLoggerName(moduleName)) {
-    BOOST_THROW_EXCEPTION(std::invalid_argument("Logger name '" + moduleName + "' is invalid"));
-  }
-  Logging::get().registerLoggerNameImpl(std::move(moduleName));
-}
-
-namespace detail {
-
-std::ostream&
-operator<<(std::ostream& os, LoggerTimestamp)
-{
-  using namespace ndn::time;
-
-  const auto sinceEpoch = system_clock::now().time_since_epoch();
-  BOOST_ASSERT(sinceEpoch.count() >= 0);
-  // use abs() to silence truncation warning in snprintf(), see #4365
-  const auto usecs = std::abs(duration_cast<microseconds>(sinceEpoch).count());
-  const auto usecsPerSec = microseconds::period::den;
-
-  // 10 (whole seconds) + '.' + 6 (fraction) + '\0'
-  char buffer[10 + 1 + 6 + 1];
-  BOOST_ASSERT_MSG(usecs / usecsPerSec <= 9999999999, "whole seconds cannot fit in 10 characters");
-
-  static_assert(std::is_same<microseconds::rep, int_least64_t>::value,
-                "PRIdLEAST64 is incompatible with microseconds::rep");
-  // std::snprintf unavailable on some platforms, see #2299
-  ::snprintf(buffer, sizeof(buffer), "%" PRIdLEAST64 ".%06" PRIdLEAST64,
-             usecs / usecsPerSec, usecs % usecsPerSec);
-
-  return os << buffer;
-}
-
-} // namespace detail
 } // namespace util
 } // namespace ndn
