@@ -309,11 +309,14 @@ Forwarder::onIncomingData(Face& inFace, const Data& data)
     return;
   }
 
+  shared_ptr<Data> dataCopyWithoutTag = make_shared<Data>(data);
+  dataCopyWithoutTag->removeTag<lp::HopCountTag>();
+
   // CS insert
   if (m_csFromNdnSim == nullptr)
-    m_cs.insert(data);
+    m_cs.insert(*dataCopyWithoutTag);
   else
-    m_csFromNdnSim->Add(data.shared_from_this());
+    m_csFromNdnSim->Add(dataCopyWithoutTag);
 
   // when only one PIT entry is matched, trigger strategy: after receive Data
   if (pitMatches.size() == 1) {
