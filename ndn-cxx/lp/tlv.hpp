@@ -35,6 +35,7 @@ enum {
   Sequence = 81,
   FragIndex = 82,
   FragCount = 83,
+  HopCountTag = 84,
   Nack = 800,
   NackReason = 801,
   NextHopFaceId = 816,

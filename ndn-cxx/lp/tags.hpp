@@ -72,6 +72,13 @@ typedef SimpleTag<EmptyValue, 14> NonDiscoveryTag;
  */
 typedef SimpleTag<PrefixAnnouncementHeader, 15> PrefixAnnouncementTag;
 
+/** \class HopCountTag
+ *  \brief a packet tag for HopCount field
+ *
+ * This tag can be attached to Interest, Data, Nack.
+ */
+typedef SimpleTag<uint64_t, 0x60000000> HopCountTag;
+
 } // namespace lp
 } // namespace ndn
 
