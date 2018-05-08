@@ -163,7 +163,7 @@ public: // constructors
    * @throw ConfigFile::Error the configuration file cannot be parsed or specifies an unsupported protocol
    */
   explicit
-  Face(boost::asio::io_service& ioService);
+  Face(DummyIoService& ioService);
 
   /**
    * @brief Create Face using given transport and KeyChain
@@ -178,37 +178,6 @@ public: // constructors
    * @note shared_ptr is passed by value because ownership is shared with this class
    */
   Face(shared_ptr<Transport> transport, KeyChain& keyChain);
-
-  /**
-   * @brief Create Face using given transport and io_service
-   * @param transport the transport for lower layer communication. If nullptr,
-   *                  a default transport will be used.
-   * @param ioService the io_service that controls all IO operations
-   *
-   * @sa Face(boost::asio::io_service&)
-   * @sa Face(shared_ptr<Transport>)
-   *
-   * @throw ConfigFile::Error @p transport is nullptr, and the configuration file cannot be
-   *                          parsed or specifies an unsupported protocol
-   * @note shared_ptr is passed by value because ownership is shared with this class
-   */
-  Face(shared_ptr<Transport> transport, boost::asio::io_service& ioService);
-
-  /**
-   * @brief Create a new Face using given Transport and io_service
-   * @param transport the transport for lower layer communication. If nullptr,
-   *                  a default transport will be used.
-   * @param ioService the io_service that controls all IO operations
-   * @param keyChain the KeyChain to sign commands
-   *
-   * @sa Face(boost::asio::io_service&)
-   * @sa Face(shared_ptr<Transport>, KeyChain&)
-   *
-   * @throw ConfigFile::Error @p transport is nullptr, and the configuration file cannot be
-   *                          parsed or specifies an unsupported protocol
-   * @note shared_ptr is passed by value because ownership is shared with this class
-   */
-  Face(shared_ptr<Transport> transport, boost::asio::io_service& ioService, KeyChain& keyChain);
 
   virtual
   ~Face();
@@ -466,10 +435,11 @@ public: // IO routine
   /**
    * @return Dereferenced nullptr (cannot use IoService in simulations), preserved for API compatibility
    */
-  boost::asio::io_service&
+  DummyIoService&
   getIoService()
   {
-    return *static_cast<boost::asio::io_service*>(nullptr);
+    static DummyIoService io;
+    return io;
   }
 
 NDN_CXX_PUBLIC_WITH_TESTS_ELSE_PROTECTED:

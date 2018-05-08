@@ -34,19 +34,16 @@ Transport::Error::Error(const std::string& msg)
 }
 
 Transport::Transport()
-  : m_ioService(nullptr)
-  , m_isConnected(false)
+  : m_isConnected(false)
   , m_isReceiving(false)
 {
 }
 
 void
-Transport::connect(boost::asio::io_service& ioService,
-                   const ReceiveCallback& receiveCallback)
+Transport::connect(const ReceiveCallback& receiveCallback)
 {
   BOOST_ASSERT(receiveCallback != nullptr);
 
-  m_ioService = &ioService;
   m_receiveCallback = receiveCallback;
 }
 

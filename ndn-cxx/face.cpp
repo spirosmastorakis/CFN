@@ -61,31 +61,19 @@ Face::OversizedPacketError::OversizedPacketError(char pktType, const Name& name,
 {
 }
 
+Face::Face(DummyIoService& ioService)
+  : m_impl(new Impl(*this))
+{
+  construct(nullptr, ns3::ndn::StackHelper::getKeyChain());
+}
+
 Face::Face(shared_ptr<Transport> transport)
   : m_impl(new Impl(*this))
 {
   construct(transport, ns3::ndn::StackHelper::getKeyChain());
 }
 
-Face::Face(boost::asio::io_service& ioService)
-  : m_impl(new Impl(*this))
-{
-  construct(nullptr, ns3::ndn::StackHelper::getKeyChain());
-}
-
 Face::Face(shared_ptr<Transport> transport, KeyChain& keyChain)
-  : m_impl(new Impl(*this))
-{
-  construct(std::move(transport), keyChain);
-}
-
-Face::Face(shared_ptr<Transport> transport, boost::asio::io_service& ioService)
-  : m_impl(new Impl(*this))
-{
-  construct(transport, ns3::ndn::StackHelper::getKeyChain());
-}
-
-Face::Face(shared_ptr<Transport> transport, boost::asio::io_service& ioService, KeyChain& keyChain)
   : m_impl(new Impl(*this))
 {
   construct(std::move(transport), keyChain);

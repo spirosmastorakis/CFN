@@ -151,7 +151,7 @@ class Scheduler : noncopyable
 {
 public:
   explicit
-  Scheduler(boost::asio::io_service& ioService);
+  Scheduler(DummyIoService& ioService);
 
   ~Scheduler();
 

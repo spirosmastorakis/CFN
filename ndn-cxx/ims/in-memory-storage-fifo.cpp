@@ -28,7 +28,7 @@ InMemoryStorageFifo::InMemoryStorageFifo(size_t limit)
 {
 }
 
-InMemoryStorageFifo::InMemoryStorageFifo(boost::asio::io_service& ioService, size_t limit)
+InMemoryStorageFifo::InMemoryStorageFifo(DummyIoService& ioService, size_t limit)
   : InMemoryStorage(ioService, limit)
 {
 }

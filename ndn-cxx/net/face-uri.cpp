@@ -26,7 +26,7 @@
  */
 
 #include "ndn-cxx/net/face-uri.hpp"
-#include "ndn-cxx/net/dns.hpp"
+// #include "ndn-cxx/net/dns.hpp"
 #include "ndn-cxx/util/string-helper.hpp"
 
 #include <boost/algorithm/string.hpp>
@@ -244,7 +244,7 @@ public:
   canonize(const FaceUri& faceUri,
            const FaceUri::CanonizeSuccessCallback& onSuccess,
            const FaceUri::CanonizeFailureCallback& onFailure,
-           boost::asio::io_service& io, time::nanoseconds timeout) const = 0;
+           time::nanoseconds timeout) const = 0;
 };
 
 template<typename Protocol>
@@ -260,95 +260,97 @@ public:
   bool
   isCanonical(const FaceUri& faceUri) const override
   {
-    if (faceUri.getPort().empty()) {
-      return false;
-    }
-    if (!faceUri.getPath().empty()) {
-      return false;
-    }
+    BOOST_THROW_EXCEPTION(std::runtime_error("IP host canonization not supported"));
+    // if (faceUri.getPort().empty()) {
+    //   return false;
+    // }
+    // if (!faceUri.getPath().empty()) {
+    //   return false;
+    // }
 
-    boost::system::error_code ec;
-    auto addr = boost::asio::ip::address::from_string(unescapeHost(faceUri.getHost()), ec);
-    if (ec) {
-      return false;
-    }
+    // boost::system::error_code ec;
+    // auto addr = ip::addressFromString(unescapeHost(faceUri.getHost()), ec);
+    // if (ec) {
+    //   return false;
+    // }
 
-    bool hasCorrectScheme = (faceUri.getScheme() == m_v4Scheme && addr.is_v4()) ||
-                            (faceUri.getScheme() == m_v6Scheme && addr.is_v6());
-    if (!hasCorrectScheme) {
-      return false;
-    }
+    // bool hasCorrectScheme = (faceUri.getScheme() == m_v4Scheme && addr.is_v4()) ||
+    //                         (faceUri.getScheme() == m_v6Scheme && addr.is_v6());
+    // if (!hasCorrectScheme) {
+    //   return false;
+    // }
 
-    auto checkAddressWithUri = [] (const boost::asio::ip::address& addr,
-                                   const FaceUri& faceUri) -> bool {
-      if (addr.is_v4() || !addr.to_v6().is_link_local()) {
-        return addr.to_string() == faceUri.getHost();
-      }
+    // auto checkAddressWithUri = [] (const boost::asio::ip::address& addr,
+    //                                const FaceUri& faceUri) -> bool {
+    //   if (addr.is_v4() || !addr.to_v6().is_link_local()) {
+    //     return addr.to_string() == faceUri.getHost();
+    //   }
 
-      std::vector<std::string> addrFields, faceUriFields;
-      std::string addrString = addr.to_string();
-      std::string faceUriString = faceUri.getHost();
+    //   std::vector<std::string> addrFields, faceUriFields;
+    //   std::string addrString = addr.to_string();
+    //   std::string faceUriString = faceUri.getHost();
 
-      boost::algorithm::split(addrFields, addrString, boost::is_any_of("%"));
-      boost::algorithm::split(faceUriFields, faceUriString, boost::is_any_of("%"));
-      if (addrFields.size() != 2 || faceUriFields.size() != 2) {
-        return false;
-      }
+    //   boost::algorithm::split(addrFields, addrString, boost::is_any_of("%"));
+    //   boost::algorithm::split(faceUriFields, faceUriString, boost::is_any_of("%"));
+    //   if (addrFields.size() != 2 || faceUriFields.size() != 2) {
+    //     return false;
+    //   }
 
-      if (faceUriFields[1].size() > 2 && faceUriFields[1].compare(0, 2, "25") == 0) {
-        // %25... is accepted, but not a canonical form
-        return false;
-      }
+    //   if (faceUriFields[1].size() > 2 && faceUriFields[1].compare(0, 2, "25") == 0) {
+    //     // %25... is accepted, but not a canonical form
+    //     return false;
+    //   }
 
-      return addrFields[0] == faceUriFields[0] &&
-             addrFields[1] == faceUriFields[1];
-    };
+    //   return addrFields[0] == faceUriFields[0] &&
+    //          addrFields[1] == faceUriFields[1];
+    // };
 
-    return checkAddressWithUri(addr, faceUri) && checkAddress(addr).first;
+    // return checkAddressWithUri(addr, faceUri) && checkAddress(addr).first;
   }
 
   void
   canonize(const FaceUri& faceUri,
            const FaceUri::CanonizeSuccessCallback& onSuccess,
            const FaceUri::CanonizeFailureCallback& onFailure,
-           boost::asio::io_service& io, time::nanoseconds timeout) const override
+           time::nanoseconds timeout) const override
   {
-    if (this->isCanonical(faceUri)) {
-      onSuccess(faceUri);
-      return;
-    }
+    BOOST_THROW_EXCEPTION(std::runtime_error("IP host canonization not supported"));
+    // if (this->isCanonical(faceUri)) {
+    //   onSuccess(faceUri);
+    //   return;
+    // }
 
-    // make a copy because caller may modify faceUri
-    auto uri = make_shared<FaceUri>(faceUri);
-    boost::system::error_code ec;
-    auto ipAddress = boost::asio::ip::address::from_string(unescapeHost(faceUri.getHost()), ec);
-    if (!ec) {
-      // No need to resolve IP address if host is already an IP
-      if ((faceUri.getScheme() == m_v4Scheme && !ipAddress.is_v4()) ||
-          (faceUri.getScheme() == m_v6Scheme && !ipAddress.is_v6())) {
-        return onFailure("IPv4/v6 mismatch");
-      }
+    // // make a copy because caller may modify faceUri
+    // auto uri = make_shared<FaceUri>(faceUri);
+    // boost::system::error_code ec;
+    // auto ipAddress = ip::addressFromString(unescapeHost(faceUri.getHost()), ec);
+    // if (!ec) {
+    //   // No need to resolve IP address if host is already an IP
+    //   if ((faceUri.getScheme() == m_v4Scheme && !ipAddress.is_v4()) ||
+    //       (faceUri.getScheme() == m_v6Scheme && !ipAddress.is_v6())) {
+    //     return onFailure("IPv4/v6 mismatch");
+    //   }
 
-      onDnsSuccess(uri, onSuccess, onFailure, ipAddress);
-    }
-    else {
-      dns::AddressSelector addressSelector;
-      if (faceUri.getScheme() == m_v4Scheme) {
-        addressSelector = dns::Ipv4Only();
-      }
-      else if (faceUri.getScheme() == m_v6Scheme) {
-        addressSelector = dns::Ipv6Only();
-      }
-      else {
-        BOOST_ASSERT(faceUri.getScheme() == m_baseScheme);
-        addressSelector = dns::AnyAddress();
-      }
+    //   onDnsSuccess(uri, onSuccess, onFailure, ipAddress);
+    // }
+    // else {
+    //   dns::AddressSelector addressSelector;
+    //   if (faceUri.getScheme() == m_v4Scheme) {
+    //     addressSelector = dns::Ipv4Only();
+    //   }
+    //   else if (faceUri.getScheme() == m_v6Scheme) {
+    //     addressSelector = dns::Ipv6Only();
+    //   }
+    //   else {
+    //     BOOST_ASSERT(faceUri.getScheme() == m_baseScheme);
+    //     addressSelector = dns::AnyAddress();
+    //   }
 
-      dns::asyncResolve(unescapeHost(faceUri.getHost()),
-        bind(&IpHostCanonizeProvider<Protocol>::onDnsSuccess, this, uri, onSuccess, onFailure, _1),
-        bind(&IpHostCanonizeProvider<Protocol>::onDnsFailure, this, uri, onFailure, _1),
-        io, addressSelector, timeout);
-    }
+    //   dns::asyncResolve(unescapeHost(faceUri.getHost()),
+    //     bind(&IpHostCanonizeProvider<Protocol>::onDnsSuccess, this, uri, onSuccess, onFailure, _1),
+    //     bind(&IpHostCanonizeProvider<Protocol>::onDnsFailure, this, uri, onFailure, _1),
+    //     io, addressSelector, timeout);
+    // }
   }
 
 protected:
@@ -365,54 +367,54 @@ protected:
   }
 
 private:
-  void
-  onDnsSuccess(const shared_ptr<FaceUri>& faceUri,
-               const FaceUri::CanonizeSuccessCallback& onSuccess,
-               const FaceUri::CanonizeFailureCallback& onFailure,
-               const dns::IpAddress& ipAddress) const
-  {
-    bool isOk = false;
-    std::string reason;
-    std::tie(isOk, reason) = this->checkAddress(ipAddress);
-    if (!isOk) {
-      return onFailure(reason);
-    }
+  // void
+  // onDnsSuccess(const shared_ptr<FaceUri>& faceUri,
+  //              const FaceUri::CanonizeSuccessCallback& onSuccess,
+  //              const FaceUri::CanonizeFailureCallback& onFailure,
+  //              const dns::IpAddress& ipAddress) const
+  // {
+  //   bool isOk = false;
+  //   std::string reason;
+  //   std::tie(isOk, reason) = this->checkAddress(ipAddress);
+  //   if (!isOk) {
+  //     return onFailure(reason);
+  //   }
 
-    uint16_t port = 0;
-    if (faceUri->getPort().empty()) {
-      port = ipAddress.is_multicast() ? m_defaultMulticastPort : m_defaultUnicastPort;
-    }
-    else {
-      try {
-        port = boost::lexical_cast<uint16_t>(faceUri->getPort());
-      }
-      catch (const boost::bad_lexical_cast&) {
-        return onFailure("invalid port number '" + faceUri->getPort() + "'");
-      }
-    }
+  //   uint16_t port = 0;
+  //   if (faceUri->getPort().empty()) {
+  //     port = ipAddress.is_multicast() ? m_defaultMulticastPort : m_defaultUnicastPort;
+  //   }
+  //   else {
+  //     try {
+  //       port = boost::lexical_cast<uint16_t>(faceUri->getPort());
+  //     }
+  //     catch (const boost::bad_lexical_cast&) {
+  //       return onFailure("invalid port number '" + faceUri->getPort() + "'");
+  //     }
+  //   }
 
-    FaceUri canonicalUri(typename Protocol::endpoint(ipAddress, port));
-    BOOST_ASSERT(canonicalUri.isCanonical());
-    onSuccess(canonicalUri);
-  }
+  //   FaceUri canonicalUri(typename Protocol::endpoint(ipAddress, port));
+  //   BOOST_ASSERT(canonicalUri.isCanonical());
+  //   onSuccess(canonicalUri);
+  // }
 
-  void
-  onDnsFailure(const shared_ptr<FaceUri>& faceUri,
-               const FaceUri::CanonizeFailureCallback& onFailure,
-               const std::string& reason) const
-  {
-    onFailure(reason);
-  }
+  // void
+  // onDnsFailure(const shared_ptr<FaceUri>& faceUri,
+  //              const FaceUri::CanonizeFailureCallback& onFailure,
+  //              const std::string& reason) const
+  // {
+  //   onFailure(reason);
+  // }
 
   /** \brief when overriden in a subclass, check the IP address is allowable
    *  \return (true,ignored) if the address is allowable;
    *          (false,reason) if the address is not allowable.
    */
-  virtual std::pair<bool, std::string>
-  checkAddress(const dns::IpAddress& ipAddress) const
-  {
-    return {true, ""};
-  }
+  // virtual std::pair<bool, std::string>
+  // checkAddress(const dns::IpAddress& ipAddress) const
+  // {
+  //   return {true, ""};
+  // }
 
   static std::string
   unescapeHost(std::string host)
@@ -450,14 +452,14 @@ public:
   }
 
 protected:
-  std::pair<bool, std::string>
-  checkAddress(const dns::IpAddress& ipAddress) const override
-  {
-    if (ipAddress.is_multicast()) {
-      return {false, "cannot use multicast address"};
-    }
-    return {true, ""};
-  }
+  // std::pair<bool, std::string>
+  // checkAddress(const dns::IpAddress& ipAddress) const override
+  // {
+  //   if (ipAddress.is_multicast()) {
+  //     return {false, "cannot use multicast address"};
+  //   }
+  //   return {true, ""};
+  // }
 };
 
 class EtherCanonizeProvider : public CanonizeProvider
@@ -487,7 +489,7 @@ public:
   canonize(const FaceUri& faceUri,
            const FaceUri::CanonizeSuccessCallback& onSuccess,
            const FaceUri::CanonizeFailureCallback& onFailure,
-           boost::asio::io_service& io, time::nanoseconds timeout) const override
+           time::nanoseconds timeout) const override
   {
     auto addr = ethernet::Address::fromString(faceUri.getHost());
     if (addr.isNull()) {
@@ -519,7 +521,7 @@ public:
   canonize(const FaceUri& faceUri,
            const FaceUri::CanonizeSuccessCallback& onSuccess,
            const FaceUri::CanonizeFailureCallback& onFailure,
-           boost::asio::io_service& io, time::nanoseconds timeout) const override
+           time::nanoseconds timeout) const override
   {
     if (faceUri.getHost().empty()) {
       onFailure("network interface name is missing");
@@ -565,7 +567,7 @@ public:
   canonize(const FaceUri& faceUri,
            const FaceUri::CanonizeSuccessCallback& onSuccess,
            const FaceUri::CanonizeFailureCallback& onFailure,
-           boost::asio::io_service& io, time::nanoseconds timeout) const override
+           time::nanoseconds timeout) const override
   {
     if (this->isCanonical(faceUri)) {
       onSuccess(faceUri);
@@ -644,7 +646,7 @@ FaceUri::isCanonical() const
 void
 FaceUri::canonize(const CanonizeSuccessCallback& onSuccess,
                   const CanonizeFailureCallback& onFailure,
-                  boost::asio::io_service& io, time::nanoseconds timeout) const
+                  time::nanoseconds timeout) const
 {
   const CanonizeProvider* cp = getCanonizeProvider(this->getScheme());
   if (cp == nullptr) {
@@ -657,7 +659,7 @@ FaceUri::canonize(const CanonizeSuccessCallback& onSuccess,
   cp->canonize(*this,
                onSuccess ? onSuccess : [] (auto&&) {},
                onFailure ? onFailure : [] (auto&&) {},
-               io, timeout);
+               timeout);
 }
 
 } // namespace ndn

@@ -53,12 +53,11 @@ public:
   ~Transport() = default;
 
   /** \brief asynchronously open the connection
-   *  \param ioService io_service to create socket on
    *  \param receiveCallback callback function when a TLV block is received; must not be empty
    *  \throw boost::system::system_error connection cannot be established
    */
   virtual void
-  connect(boost::asio::io_service& ioService, const ReceiveCallback& receiveCallback);
+  connect(const ReceiveCallback& receiveCallback);
 
   /** \brief Close the connection.
    */
@@ -113,7 +112,6 @@ protected:
   receive(const Block& wire);
 
 protected:
-  boost::asio::io_service* m_ioService;
   bool m_isConnected;
   bool m_isReceiving;
   ReceiveCallback m_receiveCallback;

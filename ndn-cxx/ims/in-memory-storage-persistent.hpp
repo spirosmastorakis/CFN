@@ -35,7 +35,7 @@ public:
   InMemoryStoragePersistent();
 
   explicit
-  InMemoryStoragePersistent(boost::asio::io_service& ioService);
+  InMemoryStoragePersistent(DummyIoService& ioService);
 
 NDN_CXX_PUBLIC_WITH_TESTS_ELSE_PROTECTED:
   /** @brief Do nothing.

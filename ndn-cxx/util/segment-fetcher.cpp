@@ -110,7 +110,7 @@ SegmentFetcher::stop()
       m_scheduler.cancelEvent(pendingSegment.timeoutEvent);
     }
   }
-  m_face.getIoService().post([self = std::move(m_this)] {});
+  m_scheduler.scheduleEvent(0_s, [self = std::move(m_this)] {});
 }
 
 bool

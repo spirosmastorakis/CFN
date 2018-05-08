@@ -40,8 +40,7 @@ public:
   explicit
   InMemoryStorageLru(size_t limit = 16);
 
-  explicit
-  InMemoryStorageLru(boost::asio::io_service& ioService, size_t limit = 16);
+  InMemoryStorageLru(DummyIoService& ioService, size_t limit = 16);
 
 NDN_CXX_PUBLIC_WITH_TESTS_ELSE_PROTECTED:
   /** @brief Removes one Data packet from in-memory storage based on LRU, i.e. evict the least

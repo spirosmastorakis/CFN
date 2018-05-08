@@ -88,7 +88,7 @@ InMemoryStorage::InMemoryStorage(size_t limit)
   init();
 }
 
-InMemoryStorage::InMemoryStorage(boost::asio::io_service& ioService, size_t limit)
+InMemoryStorage::InMemoryStorage(DummyIoService& ioService, size_t limit)
   : m_limit(limit)
   , m_nPackets(0)
 {

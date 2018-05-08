@@ -28,7 +28,7 @@ InMemoryStoragePersistent::InMemoryStoragePersistent()
 {
 }
 
-InMemoryStoragePersistent::InMemoryStoragePersistent(boost::asio::io_service& ioService)
+InMemoryStoragePersistent::InMemoryStoragePersistent(DummyIoService& ioService)
   : InMemoryStorage(ioService)
 {
 }

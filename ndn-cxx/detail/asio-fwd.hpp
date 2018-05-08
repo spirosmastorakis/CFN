@@ -22,19 +22,13 @@
 #ifndef NDN_DETAIL_ASIO_FWD_HPP
 #define NDN_DETAIL_ASIO_FWD_HPP
 
-#include <boost/version.hpp>
+namespace ndn {
 
-namespace boost {
-namespace asio {
+class DummyIoService
+{
+public:
+};
 
-#if BOOST_VERSION >= 106600
-class io_context;
-using io_service = io_context;
-#else
-class io_service;
-#endif // BOOST_VERSION >= 106600
-
-} // namespace asio
-} // namespace boost
+} // namespace ndn
 
 #endif // NDN_DETAIL_ASIO_FWD_HPP

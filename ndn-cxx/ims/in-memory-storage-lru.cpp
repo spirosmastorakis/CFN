@@ -28,7 +28,7 @@ InMemoryStorageLru::InMemoryStorageLru(size_t limit)
 {
 }
 
-InMemoryStorageLru::InMemoryStorageLru(boost::asio::io_service& ioService,
+InMemoryStorageLru::InMemoryStorageLru(DummyIoService& ioService,
                                        size_t limit)
   : InMemoryStorage(ioService, limit)
 {
