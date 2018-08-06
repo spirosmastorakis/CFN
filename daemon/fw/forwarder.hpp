@@ -191,6 +191,17 @@ public: // allow enabling ndnSIM content store (will be removed in the future)
     m_csFromNdnSim = cs;
   }
 
+public:
+  /** \brief trigger before PIT entry is satisfied
+   *  \sa Strategy::beforeSatisfyInterest
+   */
+  signal::Signal<Forwarder, pit::Entry, Face, Data> beforeSatisfyInterest;
+
+  /** \brief trigger before PIT entry expires
+   *  \sa Strategy::beforeExpirePendingInterest
+   */
+  signal::Signal<Forwarder, pit::Entry> beforeExpirePendingInterest;
+
 PUBLIC_WITH_TESTS_ELSE_PRIVATE: // pipelines
   /** \brief incoming Interest pipeline
    */
@@ -292,6 +303,7 @@ private:
   StrategyChoice     m_strategyChoice;
   DeadNonceList      m_deadNonceList;
   NetworkRegionTable m_networkRegionTable;
+  shared_ptr<Face>   m_csFace;
 
   ns3::Ptr<ns3::ndn::ContentStore> m_csFromNdnSim;
 
