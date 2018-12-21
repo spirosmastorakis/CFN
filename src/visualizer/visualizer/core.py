@@ -525,7 +525,7 @@ class Channel(PyVizObject):
         self.canvas_item = GooCanvas.CanvasEllipse(radius_x=30, radius_y=30,
                                              fill_color="white",
                                              stroke_color="grey", line_width=2.0,
-                                             line_dash=GooCanvas.LineDash([10.0, 10.0 ]),
+                                             line_dash=GooCanvas.CanvasLineDash.newv([10.0, 10.0 ]),
                                              visibility=GooCanvas.CanvasItemVisibility.VISIBLE)
         self.canvas_item.pyviz_object = self
         self.links = []
@@ -1358,6 +1358,11 @@ class Visualizer(GObject.GObject):
                                      alignment=Pango.Alignment.CENTER,
                                      anchor=GooCanvas.CanvasAnchorType.N,
                                      x=0, y=line_width/2)
+                if angle < -PI_OVER_2:
+                    angle += math.pi
+                else:
+                    angle -= math.pi
+
             M = cairo.Matrix()
             lx, ly = self._get_label_over_line_position(pos1_x, pos1_y,
                                                         pos2_x, pos2_y)
