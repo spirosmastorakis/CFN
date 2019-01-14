@@ -3,7 +3,11 @@ import ns.csma
 import ns.wifi
 import ns.bridge
 import ns.internet
-import ns.mesh
+try:
+    import ns.mesh
+    ns_mesh_loaded = True
+except:
+    ns_mesh_loaded = False
 import ns.wimax
 import ns.wimax
 import ns.lte
@@ -62,12 +66,13 @@ netdevice_traits = {
     ns.wifi.WifiNetDevice: NetDeviceTraits(is_wireless=True),
     ns.bridge.BridgeNetDevice: NetDeviceTraits(is_virtual=True),
     ns.internet.LoopbackNetDevice: NetDeviceTraits(is_virtual=True, is_wireless=False),
-    ns.mesh.MeshPointDevice: NetDeviceTraits(is_virtual=True),
     ns.wimax.SubscriberStationNetDevice: NetDeviceTraits(is_wireless=True),
     ns.wimax.BaseStationNetDevice: NetDeviceTraits(is_wireless=True),
     ns.lte.LteUeNetDevice: NetDeviceTraits(is_wireless=True),
     ns.lte.LteEnbNetDevice: NetDeviceTraits(is_wireless=True),
 }
+if ns_mesh_loaded:
+   netdevice_traits[ns.mesh.MeshPointDevice] = NetDeviceTraits(is_virtual=True)
 
 def lookup_netdevice_traits(class_type):
     try:
