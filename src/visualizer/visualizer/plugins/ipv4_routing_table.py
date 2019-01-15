@@ -47,7 +47,8 @@ class ShowIpv4RoutingTable(InformationWindow):
         treeview.show()
         sw = Gtk.ScrolledWindow()
         sw.set_properties(hscrollbar_policy=Gtk.PolicyType.AUTOMATIC,
-                          vscrollbar_policy=Gtk.PolicyType.AUTOMATIC)
+                          vscrollbar_policy=Gtk.PolicyType.AUTOMATIC,
+                          hexpand=True, vexpand=True)
         sw.show()
         sw.add(treeview)
         self.win.vbox.add(sw)
