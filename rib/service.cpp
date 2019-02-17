@@ -34,16 +34,16 @@
 #include "core/global-io.hpp"
 #include "core/logger.hpp"
 
-#include <boost/property_tree/info_parser.hpp>
-#include <ndn-cxx/transport/tcp-transport.hpp>
-#include <ndn-cxx/transport/unix-transport.hpp>
+#include "ns3/node-list.h"
+#include "ns3/node.h"
+#include "ns3/simulator.h"
+
+#include "ns3/ndnSIM/model/ndn-l3-protocol.hpp"
 
 namespace nfd {
 namespace rib {
 
 NFD_LOG_INIT(RibService);
-
-Service* Service::s_instance = nullptr;
 
 static const std::string CFG_SECTION = "rib";
 static const std::string CFG_LOCALHOST_SECURITY = "localhost_security";
@@ -54,48 +54,8 @@ static const Name READVERTISE_NLSR_PREFIX = "/localhost/nlsr";
 static const uint64_t PROPAGATE_DEFAULT_COST = 15;
 static const time::milliseconds PROPAGATE_DEFAULT_TIMEOUT = 10_s;
 
-static ConfigSection
-loadConfigSectionFromFile(const std::string& filename)
-{
-  ConfigSection config;
-  // Any format errors should have been caught already
-  boost::property_tree::read_info(filename, config);
-  return config;
-}
-
-/**
- * \brief Look into the config file and construct appropriate transport to communicate with NFD
- * If NFD-RIB instance was initialized with config file, INFO format is assumed
- */
-static shared_ptr<ndn::Transport>
-makeLocalNfdTransport(const ConfigSection& config)
-{
-  if (config.get_child_optional("face_system.unix")) {
-    // default socket path should be the same as in UnixStreamFactory::processConfig
-    auto path = config.get<std::string>("face_system.unix.path", "/var/run/nfd.sock");
-    return make_shared<ndn::UnixTransport>(path);
-  }
-  else if (config.get_child_optional("face_system.tcp") &&
-           config.get<std::string>("face_system.tcp.listen", "yes") == "yes") {
-    // default port should be the same as in TcpFactory::processConfig
-    auto port = config.get<std::string>("face_system.tcp.port", "6363");
-    return make_shared<ndn::TcpTransport>("localhost", port);
-  }
-  else {
-    BOOST_THROW_EXCEPTION(ConfigFile::Error("No transport is available to communicate with NFD"));
-  }
-}
-
-Service::Service(const std::string& configFile, ndn::KeyChain& keyChain)
-  : Service(keyChain, makeLocalNfdTransport(loadConfigSectionFromFile(configFile)),
-            [&configFile] (ConfigFile& config, bool isDryRun) {
-              config.parse(configFile, isDryRun);
-            })
-{
-}
-
-Service::Service(const ConfigSection& configSection, ndn::KeyChain& keyChain)
-  : Service(keyChain, makeLocalNfdTransport(configSection),
+Service::Service(const ConfigSection& configSection, ndn::Face& face, ndn::KeyChain& keyChain)
+  : Service(keyChain, face,
             [&configSection] (ConfigFile& config, bool isDryRun) {
               config.parse(configSection, isDryRun, "internal://nfd.conf");
             })
@@ -103,24 +63,15 @@ Service::Service(const ConfigSection& configSection, ndn::KeyChain& keyChain)
 }
 
 template<typename ConfigParseFunc>
-Service::Service(ndn::KeyChain& keyChain, shared_ptr<ndn::Transport> localNfdTransport,
-                 const ConfigParseFunc& configParse)
+Service::Service(ndn::KeyChain& keyChain, ndn::Face& face, const ConfigParseFunc& configParse)
   : m_keyChain(keyChain)
-  , m_face(std::move(localNfdTransport), getGlobalIoService(), m_keyChain)
+  , m_face(face)
   , m_scheduler(m_face.getIoService())
   , m_nfdController(m_face, m_keyChain)
   , m_fibUpdater(m_rib, m_nfdController)
   , m_dispatcher(m_face, m_keyChain)
   , m_ribManager(m_rib, m_face, m_keyChain, m_nfdController, m_dispatcher, m_scheduler)
 {
-  if (s_instance != nullptr) {
-    BOOST_THROW_EXCEPTION(std::logic_error("RIB service cannot be instantiated more than once"));
-  }
-  if (&getGlobalIoService() != &getRibIoService()) {
-    BOOST_THROW_EXCEPTION(std::logic_error("RIB service must run on RIB thread"));
-  }
-  s_instance = this;
-
   ConfigFile config(ConfigFile::ignoreUnknownSection);
   config.addSectionHandler(CFG_SECTION, bind(&Service::processConfig, this, _1, _2, _3));
   configParse(config, true);
@@ -132,19 +83,14 @@ Service::Service(ndn::KeyChain& keyChain, shared_ptr<ndn::Transport> localNfdTra
 
 Service::~Service()
 {
-  s_instance = nullptr;
 }
 
 Service&
 Service::get()
 {
-  if (s_instance == nullptr) {
-    BOOST_THROW_EXCEPTION(std::logic_error("RIB service is not instantiated"));
-  }
-  if (&getGlobalIoService() != &getRibIoService()) {
-    BOOST_THROW_EXCEPTION(std::logic_error("Must get RIB service on RIB thread"));
-  }
-  return *s_instance;
+  auto node = ::ns3::NodeList::GetNode(::ns3::Simulator::GetContext());
+  auto l3 = node->GetObject<::ns3::ndn::L3Protocol>();
+  return l3->getRibService();
 }
 
 void
