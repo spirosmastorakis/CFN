@@ -240,7 +240,7 @@ def options(opt):
                    dest='enable_desmetrics')
     opt.add_option('--cxx-standard',
                    help=('Compile NS-3 with the given C++ standard'),
-                   type='string', default='-std=c++11', dest='cxx_standard')
+                   type='string', default='-std=c++14', dest='cxx_standard')
 
     # options provided in subdirectories
     opt.recurse('src')

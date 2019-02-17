@@ -27,7 +27,7 @@ class GccTraits(CompilerTraits):
                                         '-fstrict-aliasing', '-Wstrict-aliasing']]
 
 	def get_compiler_flags(self):
-		return ['-std=c++0x', '-std=c++11']
+		return ['-std=c++14']
 
 	def get_warnings_flags(self, level):
 		warnings = []
@@ -65,7 +65,7 @@ class IccTraits(CompilerTraits):
 		self.warnings_flags = [[], [], ['-Wall']]
 
 	def get_compiler_flags(self):
-		return ['/Qstd=c++11']
+		return ['/Qstd=c++14']
 
 	def get_warnings_flags(self, level):
 		warnings = []
