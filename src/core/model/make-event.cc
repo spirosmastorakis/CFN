@@ -58,4 +58,26 @@ private:
   return ev;
 }
 
+EventImpl * MakeEvent (std::function<void()> function)
+{
+  class EventMemberImplStdFunction : public EventImpl
+  {
+  public:
+    EventMemberImplStdFunction (std::function<void()> function)
+      : m_function(std::move(function))
+    {
+    }
+
+  private:
+    void Notify (void) override
+    {
+      m_function();
+    }
+
+    std::function<void()> m_function;
+  } *ev = new EventMemberImplStdFunction(std::move(function));
+
+  return ev;
+}
+
 } // namespace ns3

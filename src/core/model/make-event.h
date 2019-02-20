@@ -20,6 +20,8 @@
 #ifndef MAKE_EVENT_H
 #define MAKE_EVENT_H
 
+#include <functional>
+
 /**
  * \file
  * \ingroup events
@@ -308,6 +310,11 @@ template <typename U1, typename U2, typename U3, typename U4, typename U5, typen
 EventImpl * MakeEvent (void (*f)(U1,U2,U3,U4,U5,U6), T1 a1, T2 a2, T3 a3, T4 a4, T5 a5, T6 a6);
 /**@}*/
 
+/**
+ * \copybrief MakeEvent(std::function<void()>)
+ */
+EventImpl * MakeEvent (std::function<void()> function);
+
 } // namespace ns3
 
 /********************************************************************
@@ -352,6 +359,20 @@ struct EventMemberImplObjTraits<T *>
   static T &GetReference (T *p)
   {
     return *p;
+  }
+};
+
+/**
+ * \ingroup makeeventmemptr
+ * Helper for the MakeEvent functions which take an std::function
+ */
+template<>
+struct EventMemberImplObjTraits<std::function<void()>> {
+  typedef std::function<void()> T;
+  static T&
+  GetReference(T& p)
+  {
+    return p;
   }
 };
 
