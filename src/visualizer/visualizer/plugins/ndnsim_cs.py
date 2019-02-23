@@ -77,5 +77,4 @@ def populate_node_menu(viz, node, menu):
     menu.add(menu_item)
 
 def register(viz):
-    print("Hello, world")
     viz.connect("populate-node-menu", populate_node_menu)
