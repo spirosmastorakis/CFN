@@ -19,8 +19,8 @@
 
 // custom-app.hpp
 
-#ifndef NDN_SYNC_H
-#define NDN_SYNC_H
+#ifndef NDN_SyncForwarding_H
+#define NDN_SyncForwarding_H
 
 #include "ns3/ndnSIM/apps/ndn-app.hpp"
 #include "ns3/random-variable-stream.h"
@@ -44,7 +44,7 @@ namespace ns3 {
 namespace ndn {
 
 enum Type {stateless, stateful, data};
-typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, std::string> Graph;
+typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS, std::string> Graph;
 enum rootEnum { root };
 
 /**
@@ -57,13 +57,13 @@ enum rootEnum { root };
  *
  * When an Interest is received, it is replied with a Data with 1024-byte fake payload
  */
-class Sync : public App {
+class SyncForwarding : public App {
 public:
-  // register NS-3 type "Sync"
+  // register NS-3 type "SyncForwarding"
   static TypeId
   GetTypeId();
 
-  Sync();
+  SyncForwarding();
 
   // (overridden from ndn::App) Processing upon start of the application
   virtual void
@@ -95,6 +95,15 @@ public:
 
   void
   sendBackUpdate(std::shared_ptr<const ndn::Interest> interest);
+
+  void
+  DispatchRequest(std::string hash, Name function, uint32_t dataSize);
+
+  void
+  sendBackThunk(Name interestName);
+
+  void
+  SendThunkInterest(std::shared_ptr<const ndn::Data> data);
 
 private:
   Name m_prefix;

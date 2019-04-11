@@ -19,7 +19,7 @@
 
 // custom-app.cpp
 
-#include "ndn-sync.hpp"
+#include "ndn-sync-forwarding.hpp"
 
 #include "ns3/ptr.h"
 #include "ns3/log.h"
@@ -48,28 +48,28 @@ static ns3::GlobalValue g_globalCounter =
                ns3::IntegerValue (0),
                ns3::MakeIntegerChecker<int32_t>());
 
-NS_LOG_COMPONENT_DEFINE("ndn.Sync");
+NS_LOG_COMPONENT_DEFINE("ndn.SyncForwarding");
 
 namespace ns3 {
 namespace ndn {
 
-NS_OBJECT_ENSURE_REGISTERED(Sync);
+NS_OBJECT_ENSURE_REGISTERED(SyncForwarding);
 
 // register NS-3 type
 TypeId
-Sync::GetTypeId()
+SyncForwarding::GetTypeId()
 {
-  static TypeId tid = TypeId("ns3::ndn::Sync").SetGroupName("Ndn").SetParent<App>().AddConstructor<Sync>()
+  static TypeId tid = TypeId("ns3::ndn::SyncForwarding").SetGroupName("Ndn").SetParent<App>().AddConstructor<SyncForwarding>()
   .AddAttribute("Prefix", "Name of the Interest", StringValue("/"),
-                MakeNameAccessor(&Sync::m_prefix), MakeNameChecker())
+                MakeNameAccessor(&SyncForwarding::m_prefix), MakeNameChecker())
   .AddAttribute("Function", "Name of Function", StringValue("/"),
-                MakeNameAccessor(&Sync::m_funcName), MakeNameChecker())
+                MakeNameAccessor(&SyncForwarding::m_funcName), MakeNameChecker())
   .AddAttribute("Hint", "Forwarding hint of node", StringValue("/"),
-                MakeNameAccessor(&Sync::m_hint), MakeNameChecker());
+                MakeNameAccessor(&SyncForwarding::m_hint), MakeNameChecker());
   return tid;
 }
 
-Sync::Sync()
+SyncForwarding::SyncForwarding()
   : m_graph(root)
   , m_updateGen(CreateObject<UniformRandomVariable>())
   , m_rand(CreateObject<UniformRandomVariable>())
@@ -81,7 +81,7 @@ Sync::Sync()
 
 // Processing upon start of the application
 void
-Sync::StartApplication()
+SyncForwarding::StartApplication()
 {
   // initialize ndn::App
   ndn::App::StartApplication();
@@ -89,10 +89,11 @@ Sync::StartApplication()
   // Add FIB entries
   ndn::FibHelper::AddRoute(GetNode(), m_prefix, m_face, 0);
   ndn::FibHelper::AddRoute(GetNode(), m_hint, m_face, 0);
+  ndn::FibHelper::AddRoute(GetNode(), m_funcName, m_face, 0);
 
   // First update
   uint32_t updateTime = m_updateGen->GetValue(0, 2000);
-  Simulator::Schedule(MilliSeconds(updateTime), &Sync::GenerateUpdate, this);
+  Simulator::Schedule(MilliSeconds(updateTime), &SyncForwarding::GenerateUpdate, this);
 
   // std::ifstream i("/src/ndnSIM/apps/test.json");
   // json m_j;
@@ -101,7 +102,7 @@ Sync::StartApplication()
 
 // Processing when application is stopped
 void
-Sync::StopApplication()
+SyncForwarding::StopApplication()
 {
   // cleanup ndn::App
   ndn::App::StopApplication();
@@ -109,17 +110,39 @@ Sync::StopApplication()
 
 // Callback that will be called when Interest arrives
 void
-Sync::OnInterest(std::shared_ptr<const ndn::Interest> interest)
+SyncForwarding::OnInterest(std::shared_ptr<const ndn::Interest> interest)
 {
   ndn::App::OnInterest(interest);
 
   NS_LOG_DEBUG("Received Interest packet for " << interest->getName());
 
-  if (interest->getName().get(2).toUri() == "update") {
+  if (interest->getName().size() >= 3 && interest->getName().get(2).toUri() == "update") {
     handleUpdate(interest);
   }
-  else {
+  else if (m_prefix.isPrefixOf(interest->getName())) {
     sendBackUpdate(interest);
+    return;
+  }
+  else if (m_hint.isPrefixOf(interest->getName())) {
+    // Interest for results
+    Name interestName = interest->getName();
+    interestName.append("results");
+    auto data = std::make_shared<ndn::Data>(interestName);
+    data->setFreshnessPeriod(ndn::time::milliseconds(1000));
+    data->setContent(std::make_shared< ::ndn::Buffer>(1024));
+    ndn::StackHelper::getKeyChain().sign(*data);
+
+    NS_LOG_DEBUG("Sending back results " << data->getName());
+
+    // Call trace (for logging purposes)
+    m_transmittedDatas(data, this, m_face);
+
+    m_appLink->onReceiveData(*data);
+    return;
+  }
+  else {
+    // Interest for function
+    sendBackThunk(interest->getName());
     return;
   }
 
@@ -138,10 +161,20 @@ Sync::OnInterest(std::shared_ptr<const ndn::Interest> interest)
 
 // Callback that will be called when Data arrives
 void
-Sync::OnData(std::shared_ptr<const ndn::Data> data)
+SyncForwarding::OnData(std::shared_ptr<const ndn::Data> data)
 {
   if (data->getName().get(2).toUri() == "update") {
     NS_LOG_DEBUG("ACK for CRDT update " << data->getName());
+    return;
+  }
+  else if (data->getName().get(-1).toUri() == "thunk") {
+    NS_LOG_DEBUG("Received service response " << data->getName());
+    Simulator::Schedule(MilliSeconds(0), &SyncForwarding::SendThunkInterest, this, data);
+    return;
+  }
+  else if (data->getName().get(-1).toUri() == "results") {
+    // received results
+    NS_LOG_DEBUG("Received results for " << data->getName());
     return;
   }
 
@@ -195,11 +228,11 @@ Sync::OnData(std::shared_ptr<const ndn::Data> data)
     boost::add_edge(*vi_src, *vi_dest, m_graph);
   }
 
-  m_sourceNode = updateHash;
+  // m_sourceNode = updateHash;
 }
 
 void
-Sync::GenerateUpdate()
+SyncForwarding::GenerateUpdate()
 {
   NS_LOG_DEBUG("Generating update");
 
@@ -228,12 +261,15 @@ Sync::GenerateUpdate()
   boost::graph_traits<Graph>::vertex_iterator vi_test, vi_end;
   boost::tie(vi, vi_end) = vertices(m_graph);
   if (vi == vi_end) {
-      NS_LOG_WARN("Could not find vertex: " << m_sourceNode << " in the graph");
+      NS_LOG_WARN("Could not find vertex: " << m_sourceNode << " in the graph. This should not happen..");
       // TODO: Request missing update
       requestMissingUpdate(m_sourceNode);
       return;
   }
   boost::add_edge(*vi, v_dest, m_graph);
+
+  if (m_sourceNode != "root")
+    DispatchRequest(std::to_string(str_hash), m_funcName, dataSize);
 
   m_updates.push_back(std::make_tuple(std::to_string(str_hash), m_funcName, m_sourceNode, type, dataSize, m_hint));
 
@@ -281,11 +317,11 @@ Sync::GenerateUpdate()
   m_sourceNode = std::to_string(str_hash);
 
   uint32_t updateTime = m_updateGen->GetValue(0, 2000);
-  Simulator::Schedule(MilliSeconds(updateTime), &Sync::GenerateUpdate, this);
+  Simulator::Schedule(MilliSeconds(updateTime), &SyncForwarding::GenerateUpdate, this);
 }
 
 boost::graph_traits<Graph>::vertex_iterator
-Sync::findVertex(std::string vertexId)
+SyncForwarding::findVertex(std::string vertexId)
 {
   boost::graph_traits<Graph>::vertex_iterator vi, vi_end;
   for (boost::tie(vi, vi_end) = vertices(m_graph); vi != vi_end; ++vi) {
@@ -299,7 +335,7 @@ Sync::findVertex(std::string vertexId)
 }
 
 void
-Sync::handleUpdate(std::shared_ptr<const ndn::Interest> interest)
+SyncForwarding::handleUpdate(std::shared_ptr<const ndn::Interest> interest)
 {
   if (!interest->hasParameters()) {
     NS_LOG_DEBUG("Received CRDT Update Interest with no parameters" << interest->getName());
@@ -363,7 +399,7 @@ Sync::handleUpdate(std::shared_ptr<const ndn::Interest> interest)
 }
 
 void
-Sync::requestMissingUpdate(std::string updateHash)
+SyncForwarding::requestMissingUpdate(std::string updateHash)
 {
   auto interest = std::make_shared<ndn::Interest>((Name(m_prefix.toUri()).append("update")).append(updateHash));
   Ptr<UniformRandomVariable> rand = CreateObject<UniformRandomVariable>();
@@ -377,7 +413,7 @@ Sync::requestMissingUpdate(std::string updateHash)
 }
 
 void
-Sync::sendBackUpdate(std::shared_ptr<const ndn::Interest> interest)
+SyncForwarding::sendBackUpdate(std::shared_ptr<const ndn::Interest> interest)
 {
   NS_LOG_DEBUG("Received request for missing CRDT update " << interest->getName());
 
@@ -423,6 +459,91 @@ Sync::sendBackUpdate(std::shared_ptr<const ndn::Interest> interest)
   m_transmittedDatas(data, this, m_face);
 
   m_appLink->onReceiveData(*data);
+}
+
+void
+SyncForwarding::DispatchRequest(std::string hash, Name function, uint32_t dataSize)
+{
+  NS_LOG_DEBUG("Will send request for " << function);
+
+  // find parents
+  auto v = findVertex(hash);
+  //std::cout << "Vertex: " << m_graph[*v] << std::endl;
+  uint32_t maxDataSize = 0;
+  Name hintOfMaxData;
+  typedef Graph::in_edge_iterator edge_iterator;
+  edge_iterator ei, ei_end;
+  // find incoming edges
+  for (boost::tie(ei, ei_end) = boost::in_edges(*v, m_graph); ei != ei_end; ++ei) {
+    // find parent node(s) of v
+    for (auto i = m_updates.begin(); i != m_updates.end(); i++) {
+      //std::cout << "Parent hash: " << m_graph[boost::source(*ei, m_graph)] << std::endl;
+      if (std::get<0>(*i) == m_graph[boost::source(*ei, m_graph)]) {
+        if (maxDataSize < std::get<4>(*i)) {
+          maxDataSize = std::get<4>(*i);
+          hintOfMaxData = std::get<5>(*i);
+          break;
+        }
+      }
+    }
+  }
+
+  // send function interest
+  // TODO: switch to hash of input
+  std::hash<std::string> str_hash;
+  auto interest = std::make_shared<ndn::Interest>(Name(function.toUri()).append(std::to_string(str_hash(std::to_string(m_rand->GetValue(0, 100))))));
+  Ptr<UniformRandomVariable> rand = CreateObject<UniformRandomVariable>();
+  interest->setNonce(rand->GetValue(0, std::numeric_limits<uint32_t>::max()));
+  interest->setInterestLifetime(ndn::time::seconds(1));
+  if (maxDataSize != 0) {
+    ::ndn::DelegationList list({{10, hintOfMaxData}});
+    interest->setForwardingHint(list);
+  }
+
+  NS_LOG_DEBUG("Sending Interest for function " << *interest);
+
+  m_transmittedInterests(interest, this, m_face);
+  m_appLink->onReceiveInterest(*interest);
+}
+
+void
+SyncForwarding::sendBackThunk(Name interestName)
+{
+  Name thunkName = Name(m_hint.toUri());
+  thunkName.append(interestName);
+  std::cout << "Thunk name: " << thunkName.toUri() << std::endl;
+  Block thunkBlock = ::ndn::makeBinaryBlock(::ndn::tlv::Name, reinterpret_cast<const unsigned char *>(thunkName.toUri().c_str()), thunkName.toUri().size());
+  auto data = std::make_shared<ndn::Data>(interestName.append("thunk"));
+  data->setFreshnessPeriod(ndn::time::milliseconds(1000));
+  data->setContent(thunkBlock);
+  ndn::StackHelper::getKeyChain().sign(*data);
+
+  NS_LOG_DEBUG("Sending back thunk in data " << data->getName());
+
+  // Call trace (for logging purposes)
+  m_transmittedDatas(data, this, m_face);
+
+  m_appLink->onReceiveData(*data);
+}
+
+void
+SyncForwarding::SendThunkInterest(std::shared_ptr<const ndn::Data> data)
+{
+  Block thunkBlock = data->getContent();
+  thunkBlock.parse();
+  Name thunkName;
+  auto element = thunkBlock.elements_begin();
+  //std::cout << "Element type: " << element->type() << std::endl;
+  thunkName = Name(std::string((char*)element->value(), element->value_size()));
+  auto interest = std::make_shared<ndn::Interest>(thunkName);
+  Ptr<UniformRandomVariable> rand = CreateObject<UniformRandomVariable>();
+  interest->setNonce(rand->GetValue(0, std::numeric_limits<uint32_t>::max()));
+  interest->setInterestLifetime(ndn::time::seconds(1));
+
+  NS_LOG_DEBUG("Sending Interest for thunk " << *interest);
+
+  m_transmittedInterests(interest, this, m_face);
+  m_appLink->onReceiveInterest(*interest);
 }
 
 }

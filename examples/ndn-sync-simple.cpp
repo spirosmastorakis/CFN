@@ -52,7 +52,7 @@ main(int argc, char* argv[])
   // setting default parameters for PointToPoint links and channels
   Config::SetDefault("ns3::PointToPointNetDevice::DataRate", StringValue("1Mbps"));
   Config::SetDefault("ns3::PointToPointChannel::Delay", StringValue("10ms"));
-  Config::SetDefault("ns3::QueueBase::MaxSize", StringValue("20p"));
+  Config::SetDefault("ns3::QueueBase::MaxSize", StringValue("20000p"));
 
   // Read optional command-line parameters (e.g., enable visualizer with ./waf --run=<> --visualize
   CommandLine cmd;
@@ -78,36 +78,39 @@ main(int argc, char* argv[])
 
   // Choosing forwarding strategy
   ndn::StrategyChoiceHelper::InstallAll("/graph/program", "/localhost/nfd/strategy/mulitcast");
+  ndn::StrategyChoiceHelper::InstallAll("/function", "/localhost/nfd/strategy/best-route");
 
   // Installing applications
 
   // Consumer
-  ndn::AppHelper consumerHelper("ns3::ndn::Sync");
+  ndn::AppHelper consumerHelper("ns3::ndn::SyncForwarding");
   // Consumer will request /prefix/0, /prefix/1, ...
   consumerHelper.SetPrefix("/graph/program");
-  consumerHelper.SetAttribute("Function", StringValue("/function1"));
+  consumerHelper.SetAttribute("Function", StringValue("/function"));
   consumerHelper.SetAttribute("Hint", StringValue("/consumer"));
   auto apps = consumerHelper.Install(nodes.Get(0));                        // first node
-  apps.Stop(Seconds(10.0)); // stop the consumer app at 10 seconds mark
+  //apps.Stop(Seconds(10.0)); // stop the consumer app at 10 seconds mark
 
   // Producer
-  ndn::AppHelper producerHelper("ns3::ndn::Sync");
+  ndn::AppHelper producerHelper("ns3::ndn::SyncForwarding");
   // Producer will reply to all requests starting with /prefix
   producerHelper.SetPrefix("/graph/program");
-  producerHelper.SetAttribute("Function", StringValue("/function2"));
+  producerHelper.SetAttribute("Function", StringValue("/function"));
   producerHelper.SetAttribute("Hint", StringValue("/producer"));
   producerHelper.Install(nodes.Get(2)); // last node
 
   ndnGlobalRoutingHelper.AddOrigins("/graph/program", nodes.Get(0));
+  ndnGlobalRoutingHelper.AddOrigins("/function", nodes.Get(0));
   ndnGlobalRoutingHelper.AddOrigins("/graph/program", nodes.Get(2));
 
   ndnGlobalRoutingHelper.AddOrigins("/consumer", nodes.Get(0));
+  ndnGlobalRoutingHelper.AddOrigins("/function", nodes.Get(2));
   ndnGlobalRoutingHelper.AddOrigins("/producer", nodes.Get(2));
 
   // Calculate and install FIBs
   ndn::GlobalRoutingHelper::CalculateRoutes();
 
-  Simulator::Stop(Seconds(20.0));
+  Simulator::Stop(Seconds(21.0));
 
   Simulator::Run();
   Simulator::Destroy();
