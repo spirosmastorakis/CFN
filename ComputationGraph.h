@@ -12,13 +12,29 @@ struct objectInfo{
 };
 
 class ComputationGraph{
-
+    /*
+    * update the computation graph with an update expressed as a JSON string
+    */
     int updateGraph(std::string update);
 
+    /*
+    * create a JSON update from an objectInfo to send to others
+    */
+    std::string createUpdate(struct objectInfo info);
+
+    /*
+    * check if an entry for given name is present in the computation graph
+    */
     bool isStoredLocally(std::string name);
 
+    /*
+    * get a thunk for given name
+    */
     std::string getThunk(std::string name);
 
+    /*
+    * get info about object with a given name
+    */
     struct objectInfo getInfo(std::string name);
 
 };
