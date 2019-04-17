@@ -2,16 +2,24 @@
 #define JSON_PARSER_H
 
 #include <string>
+#include <set>
 
 enum Types { TRANSPARENT, OPAQUE, DATA};
 
 struct objectInfo{
   std::string name;
   int type;
-  std::set<std::string> dependencies;
+  std::string thunk;
+  std::set<std::string> inputs;
 };
 
+inline bool operator<(const objectInfo& lhs, const objectInfo& rhs)
+{
+  return lhs.name < rhs.name;
+}
+
 class ComputationGraph{
+public:
     /*
     * update the computation graph with an update expressed as a JSON string
     */
@@ -36,6 +44,9 @@ class ComputationGraph{
     * get info about object with a given name
     */
     struct objectInfo getInfo(std::string name);
+
+  private:
+    std::set<struct objectInfo> items;
 
 };
 
