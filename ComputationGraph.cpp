@@ -28,6 +28,8 @@ int ComputationGraph::updateGraph(std::string update){
         info.inputs.insert(input.second.get_value < std::string > ());
       }
       std::cout << "\n";
+      std::cout << "Thunk:" << property.second.get<std::string>("thunk") << "\n";
+      info.thunk = property.second.get<std::string>("thunk");
       /*std::cout << "Outputs:";
       for (auto & output: property.second.get_child("outputs")){
         std::cout << " " << output.second.get_value < std::string > ();
@@ -50,11 +52,25 @@ int ComputationGraph::updateGraph(std::string update){
 
 
 std::string ComputationGraph::createUpdate(struct objectInfo info){
-  /*ptree pt;
-  pt.put ("name", "bar");
-  std::ostringstream buf;
-  write_json (buf, pt, false);
-  std::string json = buf.str(); // {"foo":"bar"}*/
+  boost::property_tree::ptree pt;
+  boost::property_tree::ptree inputs;
+  boost::property_tree::ptree child1, child2, child3;
+
+
+  std::set<std::string>::iterator it;
+  for(it = info.inputs.begin(); it != info.inputs.end(); it++){
+    boost::property_tree::ptree input_tree;
+    input_tree.put("", *it);
+    std::cout << "Input: " << *it << "\n";
+    inputs.push_back(std::make_pair("", input_tree));
+  }
+
+  pt.put("name", info.name);
+  pt.put("type", info.type);
+  pt.add_child("inputs", inputs);
+  pt.put("thunk", info.thunk);
+
+  write_json("test1.json", pt);
   return "";
 
 }
@@ -94,5 +110,8 @@ std::string JSON_STRING="[{\"name\": \"/exec/main/()\", \"type\": \"0\", \"input
 int main(){
   ComputationGraph graph;
   graph.updateGraph(JSON_STRING);
+  struct objectInfo info = graph.getInfo("/exec/main/()");
+  std::cout << "Returned name: " << info.name << "\n";
+  graph.createUpdate(info);
   return 0;
 }
