@@ -40,9 +40,6 @@ int ComputationGraph::updateGraph(std::string update){
     items.insert(info);
   }
 
-
-
-
   return 0;
 }
 
@@ -79,7 +76,7 @@ std::string ComputationGraph::dump(){
   ss << "[";
   bool first = true;
   for(auto& item: items){
-    std::cout << "Name:" << item.name << "\n";
+    //std::cout << "Name:" << item.name << "\n";
     if(!first){
       ss << ", ";
     }else{
@@ -124,14 +121,16 @@ struct objectInfo ComputationGraph::getInfo(std::string name){
 
 std::string JSON_STRING="[{\"name\": \"/exec/main/()\", \"type\": \"0\", \"inputs\": [\"input1\", \"input2\"], \"outputs\": [], \"thunk\": \"/node1/\", \"start\": 10, \"duration\": \"30\"}, {\"name\": \"f1\", \"type\": \"1\", \"inputs\": [\"input3\", \"input4\"], \"outputs\": [], \"thunk\": \"/node2/\", \"start\": 20, \"duration\": \"15\"}]";
 int main(){
-  ComputationGraph graph;
-  graph.updateGraph(JSON_STRING);
-  struct objectInfo info = graph.getInfo("/exec/main/()");
+  ComputationGraph graph1;
+  graph1.updateGraph(JSON_STRING);
+  struct objectInfo info = graph1.getInfo("/exec/main/()");
   std::cout << "Returned name: " << info.name << "\n";
-  std::cout << "Returned updated: " << graph.createUpdate(info);
-
-  //graph.updateGraph(graph.createUpdate(info));
-
-  std::cout << "Dumped graph: " << graph.dump();
+  std::cout << "Returned updated: " << graph1.createUpdate(info) << "\n";
+  std::cout << "~~~~~~~~~~~~~~~~~~~~~~~~\n";
+  std::cout << "Dumped graph1: " << graph1.dump();
+  std::cout << "~~~~~~~~~~~~~~~~~~~~~~~~\n";
+  ComputationGraph graph2;
+  graph2.updateGraph(graph1.dump());
+  std::cout << "Dumped graph2: " << graph2.dump() << "\n";
   return 0;
 }
