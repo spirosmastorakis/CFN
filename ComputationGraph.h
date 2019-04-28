@@ -11,6 +11,8 @@ struct objectInfo{
   int type;
   std::string thunk;
   std::set<std::string> inputs;
+  unsigned int start;
+  unsigned int duration;
 };
 
 inline bool operator<(const objectInfo& lhs, const objectInfo& rhs)
@@ -21,7 +23,7 @@ inline bool operator<(const objectInfo& lhs, const objectInfo& rhs)
 class ComputationGraph{
 public:
     /*
-    * update the computation graph with an update expressed as a JSON string
+    * update the computation graph with updates expressed as a JSON list
     */
     int updateGraph(std::string update);
 
@@ -29,6 +31,11 @@ public:
     * create a JSON update from an objectInfo to send to others
     */
     std::string createUpdate(struct objectInfo info);
+
+    /*
+    * Dump the whole graph into a JSON list
+    */
+    std::string dump();
 
     /*
     * check if an entry for given name is present in the computation graph
