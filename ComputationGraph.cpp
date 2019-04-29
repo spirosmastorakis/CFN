@@ -4,6 +4,7 @@
 #include <string>
 #include "boost/property_tree/ptree.hpp"
 #include "boost/property_tree/json_parser.hpp"
+#include <vector>
 
 
 int ComputationGraph::updateGraph(std::string update){
@@ -24,9 +25,35 @@ int ComputationGraph::updateGraph(std::string update){
     std::cout << "Inputs:";
     for (auto & input: property.second.get_child("inputs")){
       std::cout << " " << input.second.get_value < std::string > ();
-      info.inputs.insert(input.second.get_value < std::string > ());
+      std::vector<std::string> decomposed;
+      std::istringstream f(input.second.get_value < std::string > ());
+      std::string s;
+      while (getline(f, s, ':')) {
+        decomposed.push_back(s);
+      }
+      struct dataInfo data;
+      data.name = decomposed[0];
+      data.size = std::stoi(decomposed[1]);
+      info.inputs.insert(data);
     }
     std::cout << "\n";
+
+    std::cout << "Outputs:";
+    for (auto & output: property.second.get_child("outputs")){
+      std::cout << " " << output.second.get_value < std::string > ();
+      std::vector<std::string> decomposed;
+      std::istringstream f(output.second.get_value < std::string > ());
+      std::string s;
+      while (getline(f, s, ':')) {
+        decomposed.push_back(s);
+      }
+      struct dataInfo data;
+      data.name = decomposed[0];
+      data.size = std::stoi(decomposed[1]);
+      info.outputs.insert(data);
+    }
+    std::cout << "\n";
+
 
     std::cout << "Thunk:" << property.second.get<std::string>("thunk") << "\n";
     info.thunk = property.second.get<std::string>("thunk");
@@ -47,20 +74,30 @@ int ComputationGraph::updateGraph(std::string update){
 std::string ComputationGraph::createUpdate(struct objectInfo info){
   boost::property_tree::ptree pt;
   boost::property_tree::ptree inputs;
-  boost::property_tree::ptree child1, child2, child3;
+  boost::property_tree::ptree outputs;
 
 
-  std::set<std::string>::iterator it;
+  std::set<struct dataInfo>::iterator it;
   for(it = info.inputs.begin(); it != info.inputs.end(); it++){
+    std::stringstream ss;
+    ss << it->name << ":" << it->size;
     boost::property_tree::ptree input_tree;
-    input_tree.put("", *it);
-    //std::cout << "Input: " << *it << "\n";
+    input_tree.put("", ss.str());
     inputs.push_back(std::make_pair("", input_tree));
+  }
+
+  for(it = info.outputs.begin(); it != info.outputs.end(); it++){
+    std::stringstream ss;
+    ss << it->name << ":" << it->size;
+    boost::property_tree::ptree output_tree;
+    output_tree.put("", ss.str());
+    outputs.push_back(std::make_pair("", output_tree));
   }
 
   pt.put("name", info.name);
   pt.put("type", info.type);
   pt.add_child("inputs", inputs);
+  pt.add_child("outputs", outputs);
   pt.put("thunk", info.thunk);
   pt.put("start", info.start);
   pt.put("duration", info.duration);
@@ -98,6 +135,29 @@ bool ComputationGraph::isStoredLocally(std::string name){
 
 }
 
+std::string ComputationGraph::getLargestInputThunk(struct objectInfo info){
+  int max_size = 0;
+  std::string largest_name;
+  for(auto & input: info.inputs){
+    if(max_size < input.size){
+      max_size = input.size;
+      largest_name = input.name;
+    }
+  }
+
+  //if there are not input params
+  if(!max_size) return "";
+
+  for(auto & item: items){
+    for(auto & output: item.outputs){
+      if(!output.name.compare(largest_name)){
+        return item.thunk;
+      }
+    }
+  }
+  return "";
+}
+
 std::string ComputationGraph::getThunk(std::string name){
   struct objectInfo info;
   info.name = name;
@@ -119,7 +179,7 @@ struct objectInfo ComputationGraph::getInfo(std::string name){
   return *it;
 }
 
-std::string JSON_STRING="[{\"name\": \"/exec/main/()\", \"type\": \"0\", \"inputs\": [\"input1\", \"input2\"], \"outputs\": [], \"thunk\": \"/node1/\", \"start\": 10, \"duration\": \"30\"}, {\"name\": \"f1\", \"type\": \"1\", \"inputs\": [\"input3\", \"input4\"], \"outputs\": [], \"thunk\": \"/node2/\", \"start\": 20, \"duration\": \"15\"}]";
+std::string JSON_STRING="[{\"name\": \"/exec/main/()\", \"type\": \"0\", \"inputs\": [], \"outputs\": [\"data1:10\", \"data2:20\"], \"thunk\": \"/node1/\", \"start\": 10, \"duration\": \"30\"}, {\"name\": \"f1\", \"type\": \"1\", \"inputs\": [\"data1:10\", \"data2:20\"], \"outputs\": [], \"thunk\": \"/node2/\", \"start\": 20, \"duration\": \"15\"}]";
 int main(){
   ComputationGraph graph1;
   graph1.updateGraph(JSON_STRING);
@@ -132,5 +192,8 @@ int main(){
   ComputationGraph graph2;
   graph2.updateGraph(graph1.dump());
   std::cout << "Dumped graph2: " << graph2.dump() << "\n";
+
+  std::cout << "Thunk of the large input param of f1: " << graph2.getLargestInputThunk(graph2.getInfo("f1")) << "\n";
+
   return 0;
 }

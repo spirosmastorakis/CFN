@@ -6,14 +6,26 @@
 
 enum Types { TRANSPARENT, OPAQUE, DATA};
 
+
+struct dataInfo{
+  std::string name;
+  int size;
+};
+
 struct objectInfo{
   std::string name;
   int type;
   std::string thunk;
-  std::set<std::string> inputs;
+  std::set<struct dataInfo> inputs;
+  std::set<struct dataInfo> outputs;
   unsigned int start;
   unsigned int duration;
 };
+
+inline bool operator<(const dataInfo& lhs, const dataInfo& rhs)
+{
+  return lhs.name < rhs.name;
+}
 
 inline bool operator<(const objectInfo& lhs, const objectInfo& rhs)
 {
@@ -36,6 +48,11 @@ public:
     * Dump the whole graph into a JSON list
     */
     std::string dump();
+
+    /*
+    * Returns a thunk to the largest input parameter
+    */
+    std::string getLargestInputThunk(struct objectInfo info);
 
     /*
     * check if an entry for given name is present in the computation graph
