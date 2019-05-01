@@ -182,8 +182,18 @@ struct objectInfo ComputationGraph::getInfo(std::string name){
 std::string JSON_STRING="[{\"name\": \"/exec/main/()\", \"type\": \"0\", \"inputs\": [], \"outputs\": [\"data1:10\", \"data2:20\"], \"thunk\": \"/node1/\", \"start\": 10, \"duration\": \"30\"}, {\"name\": \"f1\", \"type\": \"1\", \"inputs\": [\"data1:10\", \"data2:20\"], \"outputs\": [], \"thunk\": \"/node2/\", \"start\": 20, \"duration\": \"15\"}]";
 int main(){
   ComputationGraph graph1;
-  graph1.updateGraph(JSON_STRING);
-  struct objectInfo info = graph1.getInfo("/exec/main/()");
+
+
+//  graph1.updateGraph(JSON_STRING);
+
+  std::ifstream t("simple_data_10.json");
+  std::stringstream buffer;
+  buffer << t.rdbuf();
+  std::cout << "Got string:" << buffer.str() << "\n";
+  graph1.updateGraph(buffer.str());
+
+  //struct objectInfo info = graph1.getInfo("/exec/main/()");
+  struct objectInfo info = graph1.getInfo("/exec/f1");
   std::cout << "Returned name: " << info.name << "\n";
   std::cout << "Returned updated: " << graph1.createUpdate(info) << "\n";
   std::cout << "~~~~~~~~~~~~~~~~~~~~~~~~\n";
@@ -193,7 +203,8 @@ int main(){
   graph2.updateGraph(graph1.dump());
   std::cout << "Dumped graph2: " << graph2.dump() << "\n";
 
-  std::cout << "Thunk of the large input param of f1: " << graph2.getLargestInputThunk(graph2.getInfo("f1")) << "\n";
+  //std::cout << "Thunk of the large input param of f1: " << graph2.getLargestInputThunk(graph2.getInfo("f1")) << "\n";
+  std::cout << "Thunk of the large input param of f1: " << graph2.getLargestInputThunk(graph2.getInfo("/exec/f2")) << "\n";
 
   return 0;
 }

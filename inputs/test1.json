@@ -1,0 +1,11 @@
+{
+    "name": "\/exec\/main\/()",
+    "type": "0",
+    "inputs": [
+        "input1",
+        "input2"
+    ],
+    "thunk": "\/node1\/",
+    "start": "10",
+    "duration": "30"
+}
