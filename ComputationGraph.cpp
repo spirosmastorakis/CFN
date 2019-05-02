@@ -22,6 +22,9 @@ int ComputationGraph::updateGraph(std::string update){
     std::cout << "Type:" << property.second.get<std::string>("type") << "\n";
     info.type = std::stoi(property.second.get<std::string>("type"));
 
+    std::cout << "Caller:" << property.second.get<std::string>("caller") << "\n";
+    info.caller = property.second.get<std::string>("caller");
+
     std::cout << "Inputs:";
     for (auto & input: property.second.get_child("inputs")){
       std::cout << " " << input.second.get_value < std::string > ();
@@ -96,6 +99,7 @@ std::string ComputationGraph::createUpdate(struct objectInfo info){
 
   pt.put("name", info.name);
   pt.put("type", info.type);
+  pt.put("caller", info.caller);
   pt.add_child("inputs", inputs);
   pt.add_child("outputs", outputs);
   pt.put("thunk", info.thunk);

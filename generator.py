@@ -23,13 +23,20 @@ print("Our leafs:", [n for n,d in G.out_degree() if d==0] )
 counter = 0
 topo_sorted = list(nx.topological_sort(G))
 update_list = list()
+
 for node in  topo_sorted:
     update = {}
-
     outputs = random.randrange(0, 3)
 
     update['name'] = "/exec/f"+str(node)
     update['type'] = 0
+
+    update['caller'] = ""
+    preds = G.predecessors(node)
+    for pred in preds:
+        print("pred", pred)
+        update['caller'] = "/exec/f" + str(pred)
+
     update['inputs'] = list()
     update['outputs'] = list()
     for i in range(0, outputs):
@@ -65,10 +72,14 @@ json.dump(update_list, open("locality.json", "w"))
 quit()
 
 update_list = list()
-for i in range(1, 10):
+for i in range(0, 10):
     update = {}
     update['name'] = "/exec/f"+str(i)
     update['type'] = 0
+    if(i > 0):
+        update['caller'] = "/exec/f"+str(i-1)
+    else:
+        update['caller'] = ""
     update['inputs'] = list()
     update['outputs'] = list()
     update['thunk'] = 0
@@ -82,10 +93,14 @@ json.dump(update_list, open("simple_10.json", "w"))
 
 
 update_list = list()
-for i in range(1, 1000):
+for i in range(0, 1000):
     update = {}
     update['name'] = "/exec/f"+str(i)
     update['type'] = 0
+    if(i > 0):
+        update['caller'] = "/exec/f"+str(i-1)
+    else:
+        update['caller'] = ""
     update['inputs'] = list()
     update['outputs'] = list()
     update['thunk'] = 0
@@ -100,12 +115,16 @@ json.dump(update_list, open("simple_1000.json", "w"))
 
 
 update_list = list()
-for i in range(1, 10):
+for i in range(0, 10):
     update = {}
     update['name'] = "/exec/f"+str(i)
     update['type'] = 0
+    if(i > 0):
+        update['caller'] = "/exec/f"+str(i-1)
+    else:
+        update['caller'] = ""
     update['inputs'] = list()
-    if(i > 1):
+    if(i > 0):
         update['inputs'].append("d"+str(i-1) + ":44")
     update['outputs'] = list()
     update['outputs'].append("d"+str(i) + ":44")
@@ -120,12 +139,16 @@ json.dump(update_list, open("simple_data_10.json", "w"))
 
 
 update_list = list()
-for i in range(1, 1000):
+for i in range(0, 1000):
     update = {}
     update['name'] = "/exec/f"+str(i)
     update['type'] = 0
+    if(i > 0):
+        update['caller'] = "/exec/f"+str(i-1)
+    else:
+        update['caller'] = ""
     update['inputs'] = list()
-    if(i > 1):
+    if(i > 0):
         update['inputs'].append("d"+str(i-1) + ":44")
     update['outputs'] = list()
     update['outputs'].append("d"+str(i) + ":44")

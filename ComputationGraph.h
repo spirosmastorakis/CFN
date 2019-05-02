@@ -15,6 +15,7 @@ struct dataInfo{
 struct objectInfo{
   std::string name;
   int type;
+  std::string caller;
   std::string thunk;
   std::set<struct dataInfo> inputs;
   std::set<struct dataInfo> outputs;
