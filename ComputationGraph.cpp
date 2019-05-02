@@ -186,7 +186,7 @@ int main(){
 
 //  graph1.updateGraph(JSON_STRING);
 
-  std::ifstream t("simple_data_10.json");
+  std::ifstream t("locality.json");
   std::stringstream buffer;
   buffer << t.rdbuf();
   std::cout << "Got string:" << buffer.str() << "\n";
