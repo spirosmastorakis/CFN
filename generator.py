@@ -15,61 +15,63 @@ def generateRandomTree(nodes):
     #convert the graph to a tree (unidirectional edges)
     #return nx.bfs_tree(G,0).to_directed() # already directed, returns deep copy
 
-G = generateRandomTree(1000)
 
-print("Our roots:", [n for n,d in G.in_degree() if d==0] )
-print("Our leafs:", [n for n,d in G.out_degree() if d==0] )
+for topo in range(1, 4):
+    G = generateRandomTree(1000)
 
-counter = 0
-topo_sorted = list(nx.topological_sort(G))
-update_list = list()
+    print("Our roots:", [n for n,d in G.in_degree() if d==0] )
+    print("Our leafs:", [n for n,d in G.out_degree() if d==0] )
 
-for node in  topo_sorted:
-    update = {}
-    outputs = random.randrange(0, 3)
+    counter = 0
+    topo_sorted = list(nx.topological_sort(G))
+    update_list = list()
 
-    update['name'] = "/exec/f"+str(node)
-    update['type'] = 0
+    for node in  topo_sorted:
+        update = {}
+        outputs = random.randrange(0, 3)
 
-    update['caller'] = ""
-    preds = G.predecessors(node)
-    for pred in preds:
-        print("pred", pred)
-        update['caller'] = "/exec/f" + str(pred)
+        update['name'] = "/exec/f"+str(node)
+        update['type'] = 0
 
-    update['inputs'] = list()
-    update['outputs'] = list()
-    for i in range(0, outputs):
-        size = random.randrange(1, 100)
-        update['outputs'].append(update['name'] + "/d" + str(i) + ":" + str(size))
-        #outputs = random.randrange(0, 3)
-    update['thunk'] = 0
-    update['start'] = counter
-    update['duration'] =  random.randrange(1, 30)
+        update['caller'] = ""
+        preds = G.predecessors(node)
+        for pred in preds:
+            print("pred", pred)
+            update['caller'] = "/exec/f" + str(pred)
 
-    counter += 1
-    update_list.append(update)
+        update['inputs'] = list()
+        update['outputs'] = list()
+        for i in range(0, outputs):
+            size = random.randrange(1, 100)
+            update['outputs'].append(update['name'] + "/d" + str(i) + ":" + str(size))
+            #outputs = random.randrange(0, 3)
+        update['thunk'] = ""
+        update['start'] = counter
+        update['duration'] =  random.randrange(1, 30)
 
-for index in range(0, len(update_list)):
-    update = update_list[index]
-    for nested_index in range(index+1, len(update_list)):
+        counter += 1
+        update_list.append(update)
 
-        nested_update = update_list[nested_index]
-        if(len(nested_update['inputs']) > 5):
-            continue
-        for output in update['outputs']:
-            if(random.random() > 0.9):
-                nested_update['inputs'].append(output)
+    for index in range(0, len(update_list)):
+        update = update_list[index]
+        for nested_index in range(index+1, len(update_list)):
 
-for update in update_list:
-    print(update)
+            nested_update = update_list[nested_index]
+            if(len(nested_update['inputs']) > 5):
+                continue
+            for output in update['outputs']:
+                if(random.random() > 0.9):
+                    nested_update['inputs'].append(output)
 
-json.dump(update_list, open("locality.json", "w"))
+    for update in update_list:
+        print(update)
+
+    json.dump(update_list, open("locality"+str(topo)+".json", "w"))
 #nx.draw_networkx(G)
 #plt.show()
 
 
-quit()
+
 
 update_list = list()
 for i in range(0, 10):
@@ -82,7 +84,7 @@ for i in range(0, 10):
         update['caller'] = ""
     update['inputs'] = list()
     update['outputs'] = list()
-    update['thunk'] = 0
+    update['thunk'] = ""
     update['start'] = 0
     update['duration'] = 10
     print(update['name'])
@@ -103,7 +105,7 @@ for i in range(0, 1000):
         update['caller'] = ""
     update['inputs'] = list()
     update['outputs'] = list()
-    update['thunk'] = 0
+    update['thunk'] = ""
     update['start'] = 0
     update['duration'] = 10
     print(update['name'])
@@ -128,7 +130,7 @@ for i in range(0, 10):
         update['inputs'].append("d"+str(i-1) + ":44")
     update['outputs'] = list()
     update['outputs'].append("d"+str(i) + ":44")
-    update['thunk'] = "dupa"
+    update['thunk'] = ""
     update['start'] = 0
     update['duration'] = 10
     print(update['name'])
@@ -152,7 +154,7 @@ for i in range(0, 1000):
         update['inputs'].append("d"+str(i-1) + ":44")
     update['outputs'] = list()
     update['outputs'].append("d"+str(i) + ":44")
-    update['thunk'] = "dupa"
+    update['thunk'] = ""
     update['start'] = 0
     update['duration'] = 10
     print(update['name'])
