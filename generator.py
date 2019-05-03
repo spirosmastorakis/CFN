@@ -42,7 +42,7 @@ for topo in range(1, 4):
         update['inputs'] = list()
         update['outputs'] = list()
         for i in range(0, outputs):
-            size = random.randrange(1, 100)
+            size = random.randrange(1, 1000)
             update['outputs'].append(update['name'] + "/d" + str(i) + ":" + str(size))
             #outputs = random.randrange(0, 3)
         update['thunk'] = ""
@@ -57,20 +57,20 @@ for topo in range(1, 4):
         for nested_index in range(index+1, len(update_list)):
 
             nested_update = update_list[nested_index]
-            if(len(nested_update['inputs']) > 5):
+            if(len(nested_update['inputs']) > 7):
                 continue
             for output in update['outputs']:
-                if(random.random() > 0.9):
+                if(random.random() > 0.8):
                     nested_update['inputs'].append(output)
 
     for update in update_list:
         print(update)
 
-    json.dump(update_list, open("locality"+str(topo)+".json", "w"))
+    json.dump(update_list, open("locality"+str(topo)+"_largedata" + ".json", "w"))
 #nx.draw_networkx(G)
 #plt.show()
 
-
+quit()
 
 
 update_list = list()
