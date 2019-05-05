@@ -16,7 +16,7 @@ def generateRandomTree(nodes):
     #return nx.bfs_tree(G,0).to_directed() # already directed, returns deep copy
 
 
-for topo in range(1, 4):
+for topo in range(5, 50):
     G = generateRandomTree(1000)
 
     print("Our roots:", [n for n,d in G.in_degree() if d==0] )
@@ -42,7 +42,7 @@ for topo in range(1, 4):
         update['inputs'] = list()
         update['outputs'] = list()
         for i in range(0, outputs):
-            size = random.randrange(1, 1000)
+            size = random.randrange(1, 50)
             update['outputs'].append(update['name'] + "/d" + str(i) + ":" + str(size))
             #outputs = random.randrange(0, 3)
         update['thunk'] = ""
@@ -57,7 +57,7 @@ for topo in range(1, 4):
         for nested_index in range(index+1, len(update_list)):
 
             nested_update = update_list[nested_index]
-            if(len(nested_update['inputs']) > 7):
+            if(len(nested_update['inputs']) > 5):
                 continue
             for output in update['outputs']:
                 if(random.random() > 0.8):
@@ -66,7 +66,7 @@ for topo in range(1, 4):
     for update in update_list:
         print(update)
 
-    json.dump(update_list, open("locality"+str(topo)+"_largedata" + ".json", "w"))
+    json.dump(update_list, open("locality"+str(topo) + ".json", "w"))
 #nx.draw_networkx(G)
 #plt.show()
 
