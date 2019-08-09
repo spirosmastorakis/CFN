@@ -85,10 +85,10 @@ MulticastStrategy::afterReceiveInterest(const Face& inFace, const Interest& inte
       continue;
     }
 
-    if ((outFace.getId() == inFace.getId() && outFace.getLinkType() != ndn::nfd::LINK_TYPE_AD_HOC) ||
-        wouldViolateScope(inFace, interest, outFace)) {
-      continue;
-    }
+    // if ((outFace.getId() == inFace.getId() && outFace.getLinkType() != ndn::nfd::LINK_TYPE_AD_HOC) ||
+    //     wouldViolateScope(inFace, interest, outFace)) {
+    //   continue;
+    // }
 
     this->sendInterest(pitEntry, outFace, interest);
     NFD_LOG_DEBUG(interest << " from=" << inFace.getId()

@@ -155,6 +155,14 @@ GenericLinkService::encodeLpFields(const ndn::PacketBase& netPkt, lp::Packet& lp
   else {
     lpPacket.add<lp::HopCountTagField>(0);
   }
+
+  shared_ptr<lp::CFNHopTag> CFNhopTag = netPkt.getTag<lp::CFNHopTag>();
+  if (CFNhopTag != nullptr) {
+    lpPacket.add<lp::CFNHopTagField>(*CFNhopTag);
+  }
+  else {
+    lpPacket.add<lp::CFNHopTagField>(1);
+  }
 }
 
 void
@@ -357,6 +365,10 @@ GenericLinkService::decodeInterest(const Block& netPkt, const lp::Packet& firstP
     interest->setTag(make_shared<lp::HopCountTag>(firstPkt.get<lp::HopCountTagField>() + 1));
   }
 
+  if (firstPkt.has<lp::CFNHopTagField>()) {
+    interest->setTag(make_shared<lp::CFNHopTag>(firstPkt.get<lp::CFNHopTagField>()));
+  }
+
   if (firstPkt.has<lp::NextHopFaceIdField>()) {
     if (m_options.allowLocalFields) {
       interest->setTag(make_shared<lp::NextHopFaceIdTag>(firstPkt.get<lp::NextHopFaceIdField>()));
@@ -409,6 +421,10 @@ GenericLinkService::decodeData(const Block& netPkt, const lp::Packet& firstPkt)
 
   if (firstPkt.has<lp::HopCountTagField>()) {
     data->setTag(make_shared<lp::HopCountTag>(firstPkt.get<lp::HopCountTagField>() + 1));
+  }
+
+  if (firstPkt.has<lp::CFNHopTagField>()) {
+    data->setTag(make_shared<lp::CFNHopTag>(firstPkt.get<lp::CFNHopTagField>()));
   }
 
   if (firstPkt.has<lp::NackField>()) {
