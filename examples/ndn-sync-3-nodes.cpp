@@ -50,7 +50,7 @@ int
 main(int argc, char* argv[])
 {
   // setting default parameters for PointToPoint links and channels
-  Config::SetDefault("ns3::PointToPointNetDevice::DataRate", StringValue("1Mbps"));
+  Config::SetDefault("ns3::PointToPointNetDevice::DataRate", StringValue("1Gbps"));
   Config::SetDefault("ns3::PointToPointChannel::Delay", StringValue("10ms"));
   Config::SetDefault("ns3::QueueBase::MaxSize", StringValue("20000p"));
 
@@ -66,10 +66,12 @@ main(int argc, char* argv[])
   PointToPointHelper p2p;
   p2p.Install(nodes.Get(0), nodes.Get(1));
   p2p.Install(nodes.Get(1), nodes.Get(2));
+  // p2p.Install(nodes.Get(2), nodes.Get(3));
+  // p2p.Install(nodes.Get(3), nodes.Get(4));
 
   // Install NDN stack on all nodes
   ndn::StackHelper ndnHelper;
-  ndnHelper.SetDefaultRoutes(true);
+  //ndnHelper.SetDefaultRoutes(true);
   ndnHelper.InstallAll();
 
   // Installing global routing interface on all nodes
@@ -100,6 +102,22 @@ main(int argc, char* argv[])
   producerHelper.SetAttribute("Hint", StringValue("/producer"));
   producerHelper.Install(nodes.Get(2)); // last node
 
+  // Producer
+  // ndn::AppHelper testHelper("ns3::ndn::SyncRealGraph");
+  // // Producer will reply to all requests starting with /prefix
+  // testHelper.SetPrefix("/graph/program");
+  // testHelper.SetAttribute("Function", StringValue("/function"));
+  // testHelper.SetAttribute("Hint", StringValue("/test"));
+  // testHelper.Install(nodes.Get(3)); // last node
+  //
+  // // Producer
+  // ndn::AppHelper testHelper2("ns3::ndn::SyncRealGraph");
+  // // Producer will reply to all requests starting with /prefix
+  // testHelper2.SetPrefix("/graph/program");
+  // testHelper2.SetAttribute("Function", StringValue("/function"));
+  // testHelper2.SetAttribute("Hint", StringValue("/test2"));
+  // testHelper2.Install(nodes.Get(4)); // last node
+
   ndnGlobalRoutingHelper.AddOrigins("/graph/program", nodes.Get(0));
   ndnGlobalRoutingHelper.AddOrigins("/function", nodes.Get(0));
   ndnGlobalRoutingHelper.AddOrigins("/graph/program", nodes.Get(2));
@@ -110,10 +128,20 @@ main(int argc, char* argv[])
   ndnGlobalRoutingHelper.AddOrigins("/function", nodes.Get(2));
   ndnGlobalRoutingHelper.AddOrigins("/producer", nodes.Get(2));
 
-  // Calculate and install FIBs
-  ndn::GlobalRoutingHelper::CalculateRoutes();
+  // ndnGlobalRoutingHelper.AddOrigins("/test", nodes.Get(3));
+  // ndnGlobalRoutingHelper.AddOrigins("/function", nodes.Get(3));
+  // ndnGlobalRoutingHelper.AddOrigins("/graph/program", nodes.Get(3));
+  // ndnGlobalRoutingHelper.AddOrigins("/util", nodes.Get(3));
+  //
+  // ndnGlobalRoutingHelper.AddOrigins("/test2", nodes.Get(4));
+  // ndnGlobalRoutingHelper.AddOrigins("/function", nodes.Get(4));
+  // ndnGlobalRoutingHelper.AddOrigins("/graph/program", nodes.Get(4));
+  // ndnGlobalRoutingHelper.AddOrigins("/util", nodes.Get(4));
 
-  Simulator::Stop(Seconds(32.0));
+  // Calculate and install FIBs
+  ndn::GlobalRoutingHelper::CalculateAllPossibleRoutes();
+
+  Simulator::Stop(Seconds(1600.0));
 
   Simulator::Run();
   Simulator::Destroy();
