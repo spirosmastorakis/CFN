@@ -47,6 +47,7 @@ enum {
   TxSequence = 840,
   NonDiscovery = 844,
   PrefixAnnouncement = 848,
+  CFNHopTag = 849
 };
 
 enum {

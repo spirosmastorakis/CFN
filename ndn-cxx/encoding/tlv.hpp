@@ -84,6 +84,8 @@ enum {
   KeyDigest                       = 29,
   LinkDelegation                  = 31,
   LinkPreference                  = 30,
+  InputTLV                        = 45,
+  OutputTLV                       = 46,
 
   NameComponentMin = 1,
   NameComponentMax = 65535,

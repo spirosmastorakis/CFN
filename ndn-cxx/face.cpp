@@ -295,6 +295,7 @@ extractLpLocalFields(NetPkt& netPacket, const lp::Packet& lpPacket)
 {
   addTagFromField<lp::IncomingFaceIdTag, lp::IncomingFaceIdField>(netPacket, lpPacket);
   addTagFromField<lp::CongestionMarkTag, lp::CongestionMarkField>(netPacket, lpPacket);
+  addTagFromField<lp::CFNHopTag, lp::CFNHopTagField>(netPacket, lpPacket);
 
   if (lpPacket.has<lp::HopCountTagField>()) {
     netPacket.setTag(make_shared<lp::HopCountTag>(lpPacket.get<lp::HopCountTagField>() + 1));

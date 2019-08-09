@@ -114,6 +114,11 @@ typedef FieldDecl<field_location_tags::Header,
                   tlv::HopCountTag> HopCountTagField;
 BOOST_CONCEPT_ASSERT((Field<HopCountTagField>));
 
+typedef FieldDecl<field_location_tags::Header,
+                  uint64_t,
+                  tlv::CFNHopTag> CFNHopTagField;
+BOOST_CONCEPT_ASSERT((Field<CFNHopTagField>));
+
 /** \brief Declare the Fragment field.
  *
  *  The fragment (i.e. payload) is the bytes between two provided iterators. During encoding,
@@ -140,7 +145,8 @@ typedef boost::mpl::set<
   TxSequenceField,
   NonDiscoveryField,
   PrefixAnnouncementField,
-  HopCountTagField
+  HopCountTagField,
+  CFNHopTagField
   > FieldSet;
 
 } // namespace lp

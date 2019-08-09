@@ -79,6 +79,8 @@ typedef SimpleTag<PrefixAnnouncementHeader, 15> PrefixAnnouncementTag;
  */
 typedef SimpleTag<uint64_t, 0x60000000> HopCountTag;
 
+typedef SimpleTag<uint64_t, 0x60000000> CFNHopTag;
+
 } // namespace lp
 } // namespace ndn
 
